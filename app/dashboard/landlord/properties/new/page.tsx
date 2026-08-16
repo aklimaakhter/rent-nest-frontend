@@ -43,14 +43,20 @@ export default function CreatePropertyPage() {
     }
 
     try {
-      // অ্যামেনিটিজগুলোকে কমা দিয়ে আলাদা করে অ্যারে বানানো
       const amenitiesArray = amenities
         .split(",")
         .map((item) => item.trim())
         .filter((item) => item.length > 0);
 
-      // ইমেজ ইউআরএলকে অ্যারে বানিয়ে পাঠানো (ব্যাকএন্ড রিকোয়ারমেন্ট অনুযায়ী)
-      const imagesArray = imageUrl ? [imageUrl] : [];
+      const requestData = {
+        title,
+        description,
+        location,
+        price: Number(price),
+        category,
+        images: imageUrl ? [imageUrl] : [],
+        amenities: amenitiesArray,
+      };
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/landlord/properties`,
@@ -60,15 +66,7 @@ export default function CreatePropertyPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            title,
-            description,
-            location,
-            price: Number(price),
-            category,
-            images: imagesArray,
-            amenities: amenitiesArray,
-          }),
+          body: JSON.stringify(requestData),
         }
       );
 
@@ -95,7 +93,7 @@ export default function CreatePropertyPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Add New Rental Property</h1>
           <p className="text-gray-500 text-xs mt-1">
-            Fill in the details below to list your property for tenants.
+            Fill in the details below to list your property.
           </p>
         </div>
 
@@ -112,7 +110,6 @@ export default function CreatePropertyPage() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               Property Title
@@ -122,13 +119,12 @@ export default function CreatePropertyPage() {
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Modern Luxury Apartment in Downtown"
+              placeholder="e.g. Modern Luxury Apartment"
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Category */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Category
@@ -145,7 +141,6 @@ export default function CreatePropertyPage() {
               </select>
             </div>
 
-            {/* Price */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
                 Monthly Price ($)
@@ -162,7 +157,6 @@ export default function CreatePropertyPage() {
             </div>
           </div>
 
-          {/* Location */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               Location / Address
@@ -172,18 +166,18 @@ export default function CreatePropertyPage() {
               required
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. 123 Main Street, City"
+              placeholder="e.g. 123 Main Street"
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
-          {/* Image URL */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               Image URL
             </label>
             <input
               type="url"
+              required
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
               placeholder="https://example.com/image.jpg"
@@ -191,7 +185,6 @@ export default function CreatePropertyPage() {
             />
           </div>
 
-          {/* Amenities */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               Amenities (Comma separated)
@@ -200,12 +193,11 @@ export default function CreatePropertyPage() {
               type="text"
               value={amenities}
               onChange={(e) => setAmenities(e.target.value)}
-              placeholder="WiFi, AC, Parking, Swimming Pool"
+              placeholder="WiFi, AC, Parking"
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
-          {/* Description */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">
               Description
@@ -215,12 +207,11 @@ export default function CreatePropertyPage() {
               required
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the property, rules, features..."
+              placeholder="Describe the property..."
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
-          {/* Submit Button */}
           <div className="flex justify-end gap-3 pt-4">
             <button
               type="button"
