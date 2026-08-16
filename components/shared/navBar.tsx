@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Cookies from "js-cookie";
 
 const ROLE_ROUTES: Record<string, string> = {
   TENANT: "/dashboard/tenant",
@@ -11,31 +10,38 @@ const ROLE_ROUTES: Record<string, string> = {
   ADMIN: "/dashboard/admin",
 };
 
+// Vanilla JS Cookie Helper
+const getCookie = (name: string): string => {
+  if (typeof document === "undefined") return "";
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(";").shift() || "";
+  return "";
+};
+
+// Hydration Safe Store
+const emptySubscribe = () => () => {};
+const useIsMounted = () => {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+};
+
 export default function Navbar() {
   const pathname = usePathname();
+  const mounted = useIsMounted();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState("");
-
-  useEffect(() => {
-    const token = Cookies.get("accessToken") || Cookies.get("token");
-    const role = Cookies.get("role") || "";
-
-    if (token) {
-      setIsLoggedIn(true);
-      setUserRole(role);
-    } else {
-      setIsLoggedIn(false);
-      setUserRole("");
-    }
-  }, [pathname]);
+  // Dynamically check cookies after mounting safely
+  const token = mounted ? getCookie("accessToken") || getCookie("token") : "";
+  const userRole = mounted ? getCookie("role") : "";
+  const isLoggedIn = Boolean(token);
 
   const handleLogout = () => {
-    Cookies.remove("accessToken", { path: "/" });
-    Cookies.remove("token", { path: "/" });
-    Cookies.remove("role", { path: "/" });
-    setIsLoggedIn(false);
-    setUserRole("");
+    document.cookie = "accessToken=; path=/; max-age=0;";
+    document.cookie = "token=; path=/; max-age=0;";
+    document.cookie = "role=; path=/; max-age=0;";
     window.location.href = "/auth/login";
   };
 
@@ -67,33 +73,37 @@ export default function Navbar() {
           )}
         </nav>
 
-        <div className="flex items-center gap-3">
-          {isLoggedIn ? (
+        <div className="flex items-center gap-3 min-h-[40px]">
+          {mounted && (
             <>
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-100">
-                {userRole || "USER"}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl transition"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/auth/login"
-                className="px-4 py-2 text-xs font-semibold text-gray-700 hover:text-emerald-600 transition"
-              >
-                Log in
-              </Link>
-              <Link
-                href="/auth/register"
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition shadow-sm"
-              >
-                Register
-              </Link>
+              {isLoggedIn ? (
+                <>
+                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-100">
+                    {userRole || "USER"}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl transition"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="px-4 py-2 text-xs font-semibold text-gray-700 hover:text-emerald-600 transition"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition shadow-sm"
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
             </>
           )}
         </div>
