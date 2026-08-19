@@ -2,9 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
+import { logoutAction } from "@/app/auth/_actions/authAction"; // আপনার প্রজেক্টের পাথ অনুযায়ী এটি ঠিক করে নিন
 
 export default async function Navbar() {
- 
   const cookieStore = await cookies();
   const token =
     cookieStore.get("accessToken")?.value ||
@@ -13,11 +13,10 @@ export default async function Navbar() {
   return (
     <header className="border-b bg-white sticky top-0 z-50 w-full shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-
+        
         {/* Logo & Brand Name */}
         <Link href="/" className="flex items-center gap-2">
-          
-            <div className="relative w-10 h-10 sm:w-18 sm:h-18 flex items-center justify-center">
+          <div className="relative w-10 h-10 sm:w-18 sm:h-18 flex items-center justify-center">
             <Image
               src="/logo.png"
               alt="RentNest Logo"
@@ -27,7 +26,6 @@ export default async function Navbar() {
               priority
             />
           </div>
-          
           <span className="text-lg sm:text-xl font-bold text-emerald-600">RentNest</span>
         </Link>
 
@@ -39,16 +37,13 @@ export default async function Navbar() {
           <Link href="/properties" className="hover:text-emerald-600 transition-colors">
             Properties
           </Link>
-          {/* <Link href="/payments" className="hover:text-emerald-600 transition-colors">
-            Payments
-          </Link> */}
         </nav>
 
         {/* Auth Section */}
         <div className="flex items-center gap-3">
           {token ? (
-            // লগইন করা থাকলে শুধুমাত্র Sign Out বাটন দেখাবে
-            <form action="/api/auth/logout" method="POST">
+            // লগইন করা থাকলে সরাসরি সার্ভার অ্যাকشن (logoutAction) কল হবে
+            <form action={logoutAction}>
               <Button
                 variant="outline"
                 type="submit"
@@ -58,7 +53,7 @@ export default async function Navbar() {
               </Button>
             </form>
           ) : (
-            // লগইন করা না থাকলে শুধুমাত্র Log In বাটন দেখাবে
+            // লগইন করা না থাকলে Log In বাটন দেখাবে
             <Link href="/auth/login">
               <Button className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-4 text-sm font-medium">
                 Log In
