@@ -40,9 +40,11 @@ export default function LandlordDashboard() {
     }
 
     try {
+
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/landlord/properties`,
+        `${process.env.NEXT_PUBLIC_BACKEND_APP_URL || "http://localhost:5000"}/api/landlord/properties`,
         {
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },

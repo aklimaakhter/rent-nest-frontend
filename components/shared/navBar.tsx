@@ -1,112 +1,72 @@
-"use client";
-
-import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
+import { cookies } from "next/headers";
+import { Button } from "@/components/ui/button";
 
-const ROLE_ROUTES: Record<string, string> = {
-  TENANT: "/dashboard/tenant",
-  LANDLORD: "/dashboard/landlord",
-  ADMIN: "/dashboard/admin",
-};
-
-// Vanilla JS Cookie Helper
-const getCookie = (name: string): string => {
-  if (typeof document === "undefined") return "";
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(";").shift() || "";
-  return "";
-};
-
-// Hydration Safe Store
-const emptySubscribe = () => () => {};
-const useIsMounted = () => {
-  return useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false
-  );
-};
-
-export default function Navbar() {
-  const pathname = usePathname();
-  const mounted = useIsMounted();
-
-  // Dynamically check cookies after mounting safely
-  const token = mounted ? getCookie("accessToken") || getCookie("token") : "";
-  const userRole = mounted ? getCookie("role") : "";
-  const isLoggedIn = Boolean(token);
-
-  const handleLogout = () => {
-    document.cookie = "accessToken=; path=/; max-age=0;";
-    document.cookie = "token=; path=/; max-age=0;";
-    document.cookie = "role=; path=/; max-age=0;";
-    window.location.href = "/auth/login";
-  };
-
-  const dashboardPath = ROLE_ROUTES[userRole] || "/dashboard/tenant";
+export default async function Navbar() {
+ 
+  const cookieStore = await cookies();
+  const token =
+    cookieStore.get("accessToken")?.value ||
+    cookieStore.get("token")?.value;
 
   return (
-    <header className="border-b border-gray-100 bg-white">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="border-b bg-white sticky top-0 z-50 w-full shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+
+        {/* Logo & Brand Name */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-emerald-600">RentNest</span>
+          
+            <div className="relative w-10 h-10 sm:w-18 sm:h-18 flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="RentNest Logo"
+              width={200}
+              height={200}
+              className="object-contain w-auto h-auto"
+              priority
+            />
+          </div>
+          
+          <span className="text-lg sm:text-xl font-bold text-emerald-600">RentNest</span>
         </Link>
 
-        <nav className="flex items-center gap-6 text-sm font-medium text-gray-600">
-          <Link href="/" className="hover:text-emerald-600 transition">
+        {/* Nav Links */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+          <Link href="/" className="hover:text-emerald-600 transition-colors">
             Home
           </Link>
-          <Link href="/properties" className="hover:text-emerald-600 transition">
+          <Link href="/properties" className="hover:text-emerald-600 transition-colors">
             Properties
           </Link>
-          {isLoggedIn && (
-            <Link
-              href={dashboardPath}
-              className={`hover:text-emerald-600 transition ${
-                pathname.startsWith("/dashboard") ? "text-emerald-600 font-semibold" : ""
-              }`}
-            >
-              Dashboard
-            </Link>
-          )}
+          {/* <Link href="/payments" className="hover:text-emerald-600 transition-colors">
+            Payments
+          </Link> */}
         </nav>
 
-        <div className="flex items-center gap-3 min-h-[40px]">
-          {mounted && (
-            <>
-              {isLoggedIn ? (
-                <>
-                  <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-100">
-                    {userRole || "USER"}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold rounded-xl transition"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/auth/login"
-                    className="px-4 py-2 text-xs font-semibold text-gray-700 hover:text-emerald-600 transition"
-                  >
-                    Log in
-                  </Link>
-                  <Link
-                    href="/auth/register"
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition shadow-sm"
-                  >
-                    Register
-                  </Link>
-                </>
-              )}
-            </>
+        {/* Auth Section */}
+        <div className="flex items-center gap-3">
+          {token ? (
+            // লগইন করা থাকলে শুধুমাত্র Sign Out বাটন দেখাবে
+            <form action="/api/auth/logout" method="POST">
+              <Button
+                variant="outline"
+                type="submit"
+                className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 px-4 text-sm font-medium"
+              >
+                Sign Out
+              </Button>
+            </form>
+          ) : (
+            // লগইন করা না থাকলে শুধুমাত্র Log In বাটন দেখাবে
+            <Link href="/auth/login">
+              <Button className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-4 text-sm font-medium">
+                Log In
+              </Button>
+            </Link>
           )}
         </div>
+
       </div>
     </header>
   );

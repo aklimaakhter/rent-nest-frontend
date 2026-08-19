@@ -1,42 +1,34 @@
+/* eslint-disable react/no-unescaped-entities */
 "use client";
 
-import { useEffect, useActionState } from "react";
+import { useActionState, useEffect, } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { loginAction } from "../_actions/authAction";
+import { loginAction} from "../_actions/authAction";
 import { toast } from "sonner";
 
-const ROLE_ROUTES: Record<string, string> = {
-  TENANT: "/dashboard/tenant",
-  LANDLORD: "/dashboard/landlord",
-  ADMIN: "/dashboard/admin",
-};
+
 
 export default function LoginForm() {
-  const [state, action, pending] = useActionState(loginAction, null);
+  const [state, action, pending] = useActionState(loginAction, {
+    success: false,
+    message: ""
+  });
 
   useEffect(() => {
-    if (state?.message) {
-      if (state.success) {
-        toast.success(state.message);
-        
-        // সঠিক রোলের ড্যাশবোর্ডে রিডাইরেক্ট
-        const targetRoute = ROLE_ROUTES[state.role || "LANDLORD"] || "/dashboard/landlord";
-        window.location.href = targetRoute;
-      } else {
-        toast.error(state.message);
-      }
+    if (state?.message && !state.success) {
+      toast.success(state.message);
+    } else {
+      toast.error(state.message);
     }
+
   }, [state]);
 
   return (
     <form action={action} className="space-y-4">
       <Card className="p-5 space-y-4 shadow-none border-gray-100">
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
-            Email Address
-          </label>
           <Input
             name="email"
             type="email"
@@ -44,11 +36,7 @@ export default function LoginForm() {
             required
           />
         </div>
-
         <div>
-          <label className="block text-xs font-semibold text-gray-700 mb-1">
-            Password
-          </label>
           <Input
             name="password"
             type="password"
@@ -56,14 +44,19 @@ export default function LoginForm() {
             required
           />
         </div>
-
         <Button
           type="submit"
-          disabled={pending}
+          // disabled={pending}
           className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
         >
-          {pending ? "Submitting..." : "Login"}
+          {pending ? "Sining in" : "Sign in"}
         </Button>
+        <div className="text-center text-sm text-gray-600 pt-3 border-t border-gray-100 mt-2">
+          Don't have an account?{" "}
+          <a href="/auth/register" className="text-emerald-600 font-semibold hover:underline">
+            Sign up
+          </a>
+        </div>
       </Card>
     </form>
   );

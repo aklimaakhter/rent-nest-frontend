@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { getMe } from "@/service/getMe";
 
 interface Property {
   _id: string;
@@ -26,9 +27,15 @@ async function getFeaturedProperties(): Promise<Property[]> {
 export default async function HomePage() {
   const properties = await getFeaturedProperties();
 
+  const user= await getMe()
+
   return (
     <div className="space-y-16 pb-16">
-      {/* Hero Section */}
+      Hero Section
+      {
+        JSON.stringify(user)
+      }
+
       <section className="bg-emerald-50 py-20 px-4 text-center">
         <div className="max-w-4xl mx-auto space-y-6">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">

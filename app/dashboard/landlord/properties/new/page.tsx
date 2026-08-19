@@ -11,7 +11,7 @@ export default function CreatePropertyPage() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
-  const [category, setCategory] = useState("Apartment");
+  const [categoryId, setCategoryId] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [amenities, setAmenities] = useState("");
 
@@ -53,13 +53,13 @@ export default function CreatePropertyPage() {
         description,
         location,
         price: Number(price),
-        category,
+        categoryId,
         images: imageUrl ? [imageUrl] : [],
         amenities: amenitiesArray,
       };
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/landlord/properties`,
+        `${process.env.NEXT_PUBLIC_BACKEND_APP_URL || "http://localhost:5000"}/api/landlord/properties`,
         {
           method: "POST",
           headers: {
@@ -127,18 +127,16 @@ export default function CreatePropertyPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Category
+                Category ID
               </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none"
-              >
-                <option value="Apartment">Apartment</option>
-                <option value="House">House</option>
-                <option value="Single Room">Single Room</option>
-                <option value="Villa">Villa</option>
-              </select>
+              <input
+                type="text"
+                required
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                placeholder="Enter category ID string"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              />
             </div>
 
             <div>
