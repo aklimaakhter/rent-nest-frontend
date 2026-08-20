@@ -9,7 +9,7 @@ const DashboardLayout = (
 
         <div>
             {children}
-            DashboardLayout
+            
         </div>
     )
 }
