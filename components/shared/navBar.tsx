@@ -2,13 +2,31 @@ import Link from "next/link";
 import Image from "next/image";
 import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
-import { logoutAction } from "@/app/auth/_actions/authAction"; // আপনার প্রজেক্টের পাথ অনুযায়ী এটি ঠিক করে নিন
+import { logoutAction } from "@/app/auth/_actions/authAction";
+
+// JWT টোকেন থেকে রোল বের করার ফাংশন
+function getUserRoleFromToken(token: string) {
+  try {
+    const payloadBase64 = token.split(".")[1];
+    const decodedPayload = JSON.parse(
+      Buffer.from(payloadBase64, "base64").toString("utf-8")
+    );
+    return decodedPayload.role || decodedPayload.userRole || "LANDLORD";
+  } catch (error) {
+    return "LANDLORD";
+  }
+}
 
 export default async function Navbar() {
   const cookieStore = await cookies();
   const token =
     cookieStore.get("accessToken")?.value ||
     cookieStore.get("token")?.value;
+
+  let role = "";
+  if (token) {
+    role = getUserRoleFromToken(token);
+  }
 
   return (
     <header className="border-b bg-white sticky top-0 z-50 w-full shadow-sm">
@@ -37,23 +55,39 @@ export default async function Navbar() {
           <Link href="/properties" className="hover:text-emerald-600 transition-colors">
             Properties
           </Link>
+
+          {token && (
+            <Link 
+              href="/dashboard/landlord" 
+              className="hover:text-emerald-600 transition-colors font-semibold text-emerald-700"
+            >
+              Dashboard
+            </Link>
+          )}
         </nav>
 
-        {/* Auth Section */}
+        {/* Auth & Role Section */}
         <div className="flex items-center gap-3">
           {token ? (
-            // লগইন করা থাকলে সরাসরি সার্ভার অ্যাকشن (logoutAction) কল হবে
-            <form action={logoutAction}>
-              <Button
-                variant="outline"
-                type="submit"
-                className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 px-4 text-sm font-medium"
-              >
-                Sign Out
-              </Button>
-            </form>
+            <div className="flex items-center gap-3">
+              {/* Sign Out এর আগে রোল শো করার ব্যাজ */}
+              {role && (
+                <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-100">
+                  {role}
+                </span>
+              )}
+
+              <form action={logoutAction}>
+                <Button
+                  variant="outline"
+                  type="submit"
+                  className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700 h-9 px-4 text-sm font-medium"
+                >
+                  Sign Out
+                </Button>
+              </form>
+            </div>
           ) : (
-            // লগইন করা না থাকলে Log In বাটন দেখাবে
             <Link href="/auth/login">
               <Button className="bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-4 text-sm font-medium">
                 Log In
