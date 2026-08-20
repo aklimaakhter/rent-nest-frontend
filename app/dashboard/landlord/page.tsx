@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import Link from "next/link";
-import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, MapPin, DollarSign } from "lucide-react";
@@ -69,10 +68,10 @@ export default function LandlordDashboard() {
                   {/* Property Image */}
                   <div className="relative h-48 w-full bg-gray-100">
                     <img
-  src={property.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"}
-  alt={property.title}
-  className="w-full h-full object-cover"
-/>
+                      src={property.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"}
+                      alt={property.title}
+                      className="w-full h-full object-cover"
+                    />
                     <span className="absolute top-3 right-3 bg-emerald-600 text-white text-[10px] font-semibold px-2.5 py-1 rounded-full shadow">
                       {property.isAvailable !== false ? "Available" : "Rented"}
                     </span>
@@ -92,13 +91,37 @@ export default function LandlordDashboard() {
                     </div>
                   </CardContent>
                 </div>
-
                 <CardFooter className="p-4 pt-0 flex gap-2">
-                  <Link href={`/dashboard/landlord/properties/edit/${property.id || property._id}`} className="w-full">
+                  <Link href={`/dashboard/landlord/properties/edit/${property.id || property._id}`} className="w-1/2">
                     <Button variant="outline" className="w-full text-xs rounded-xl">
                       Edit
                     </Button>
                   </Link>
+
+                  <Button
+                    variant="destructive"
+                    className="w-1/2 text-xs rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 shadow-none"
+                    onClick={async () => {
+                      if (confirm("Are you sure you want to delete this property?")) {
+                        try {
+                          const propertyId = property.id || property._id;
+                          const res = await api(`/api/landlord/properties/${propertyId}`, { method: "DELETE" });
+                          if (res) {
+                            toast.success("Property deleted successfully!");
+                            
+                            setProperties(properties.filter(p => (p.id || p._id) !== propertyId));
+                          } else {
+                            toast.error("Failed to delete property.");
+                          }
+                        } catch (err) {
+                          console.error("Delete failed", err);
+                          toast.error("Something went wrong.");
+                        }
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
                 </CardFooter>
               </Card>
             ))}
