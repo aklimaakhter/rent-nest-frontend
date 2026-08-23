@@ -96,3 +96,47 @@ export async function createPropertyAction(prevState: any, formData: FormData) {
     return { success: false, message: "Something went wrong." };
   }
 }
+
+
+
+export async function updatePropertyAction(id: string, prevState: any, formData: FormData) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
+
+  const title = formData.get("title");
+  const description = formData.get("description");
+  const price = Number(formData.get("price"));
+  const location = formData.get("location");
+  const image = formData.get("image");
+  const categoryId = formData.get("categoryId");
+
+  try {
+    const response = await fetch(`http://localhost:5000/api/landlord/properties/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title,
+        description,
+        price,
+        location,
+        image,
+        categoryId,
+      }),
+    });
+
+    const res = await response.json();
+
+    if (!response.ok || (res && res.success === false)) {
+      return { success: false, message: res.message || "Failed to update property" };
+    }
+  } catch (error) {
+    console.error("Error updating property:", error);
+    return { success: false, message: "Something went wrong!" };
+  }
+
+  // আপনার ল্যান্ডলর্ড প্রপার্টি লিস্টের সঠিক রাউট এখানে দিন (যেমন: /dashboard/landlord অথবা অন্য কোনো পেজ)
+  redirect("/dashboard/landlord");
+}
