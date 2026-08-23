@@ -4,23 +4,18 @@
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-export default function RequestRentButton({ propertyId, token }: { propertyId: string; token?: string }) {
+export default function RequestRentButton({ propertyId }: { propertyId: string }) {
   const [isPending, startTransition] = useTransition();
 
   const handleRequest = async () => {
-    if (!token) {
-      toast.error("Please login as a tenant to send a request!");
-      return;
-    }
-
     startTransition(async () => {
       try {
         const response = await fetch("http://localhost:5000/api/rentals", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
+          credentials: "include", // কুকি বা সেশন হ্যান্ডেল করার জন্য
           body: JSON.stringify({ propertyId }),
         });
 
