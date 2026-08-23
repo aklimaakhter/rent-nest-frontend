@@ -151,16 +151,30 @@ export const registerAction = async (previousState: LoginState | null, formData:
   }
 };
 
+// export const logoutAction = async () => {
+//   const cookie = await cookies();
+//   cookie.delete("accessToken")
+//   cookie.delete("refreshToken")
+
+//   revalidatePath("/");
+
+//   redirect("/auth/login");
+// }
+
 export const logoutAction = async () => {
-  const cookie = await cookies();
-  cookie.delete("accessToken")
-  cookie.delete("refreshToken")
+  const cookieStore = await cookies();
+  
+  // পাথ সহ কুকি ডিলিট করা বাধ্যতামূলক
+  cookieStore.set("token", "", { maxAge: 0, path: "/" });
+  cookieStore.set("accessToken", "", { maxAge: 0, path: "/" });
+  cookieStore.set("refreshToken", "", { maxAge: 0, path: "/" });
 
-  revalidatePath("/");
+  // অতিরিক্ত সুরক্ষার জন্য ডিলিট মেথড
+  cookieStore.delete("token");
+  cookieStore.delete("accessToken");
 
+  revalidatePath("/", "layout");
   redirect("/auth/login");
-}
-
-
+};
 
 

@@ -12,7 +12,7 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // ইউজার লোড করা
+  
   const fetchUsers = async () => {
     setLoading(true);
     const res = (await getAllUsersAction()) as ApiResponse;
@@ -24,7 +24,7 @@ export default function AdminDashboardPage() {
     setLoading(false);
   };
 
-  // ইউজার লোড করা (useEffect এর ভেতরে ডিফাইন করা হলো)
+  
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
