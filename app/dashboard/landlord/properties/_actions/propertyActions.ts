@@ -112,7 +112,7 @@ export async function updatePropertyAction(id: string, prevState: any, formData:
 
   try {
     const response = await fetch(`http://localhost:5000/api/landlord/properties/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,

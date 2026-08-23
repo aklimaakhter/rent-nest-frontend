@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
 import { api } from "@/lib/api";
 import { cookies } from "next/headers";
 import RequestRentButton from "../_component/requestRentButton";
-
+import Link from "next/link";
 
 interface PropertyDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -14,15 +15,27 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
   const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
 
   let property: any = null;
+  let currentUser: any = null;
 
   try {
+    // প্রপার্টি ডিটেইলস ফেচ করা
     const res: any = await api(`/api/properties/${id}`, {
       method: "GET",
       cache: "no-store",
     });
     property = res?.data || res?.property || res;
+
+    // বর্তমান লগইন করা ইউজারের তথ্য ফেচ করা (যদি টোকেন থাকে)
+    if (token) {
+      const userRes: any = await api(`/api/auth/me`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      currentUser = userRes?.data || userRes;
+    }
   } catch (error) {
-    console.error("Failed to fetch property details", error);
+    console.error("Failed to fetch property details or user info", error);
   }
 
   if (!property) {
@@ -32,6 +45,10 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       </div>
     );
   }
+
+  // চেক করা ইউজার ল্যান্ডলর্ড কি না অথবা এই প্রপার্টির মালিক কি না
+  const isLandlord = currentUser?.role === "LANDLORD";
+  const isOwner = property?.landlordId === currentUser?.id || property?.landlord === currentUser?.id;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
@@ -62,8 +79,25 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
         {/* Request CTA Box */}
         <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-4 h-fit">
           <h3 className="font-bold text-gray-800 text-lg">Interested in this property?</h3>
-          <p className="text-xs text-gray-500">Submit a rental request to the landlord to get started.</p>
-          <RequestRentButton propertyId={property.id || property._id} token={token} />
+          
+          {isLandlord || isOwner ? (
+            <div className="space-y-3">
+              <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                You are logged in as a Landlord. You cannot send a rental request to this property.
+              </p>
+              <Link
+                href="/dashboard/landlord/requests"
+                className="w-full block text-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-xl transition"
+              >
+                View Rental Requests
+              </Link>
+            </div>
+          ) : (
+            <>
+              <p className="text-xs text-gray-500">Submit a rental request to the landlord to get started.</p>
+              <RequestRentButton propertyId={property.id || property._id} />
+            </>
+          )}
         </div>
       </div>
     </div>

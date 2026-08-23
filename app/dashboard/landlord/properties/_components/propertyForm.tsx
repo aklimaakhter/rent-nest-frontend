@@ -87,7 +87,7 @@ export default function PropertyForm() {
                 name="price"
                 required
                 min="0"
-                placeholder="1200"
+                placeholder=" "
                 className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
               />
             </div>

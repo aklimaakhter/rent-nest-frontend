@@ -12,3 +12,16 @@ export type User={
   email:string,
   role:Role
 }
+
+export type TenantRequest= {
+  id: string;
+  status: string;
+  tenant: {
+    name: string;
+    email: string;
+  };
+  property: {
+    title: string;
+    location: string;
+  };
+}

@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, MapPin, DollarSign } from "lucide-react";
+import { Plus, MapPin, DollarSign, Bell } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LandlordDashboard() {
@@ -44,6 +44,26 @@ export default function LandlordDashboard() {
         <Link href="/dashboard/landlord/properties/new">
           <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs flex items-center gap-2">
             <Plus className="w-4 h-4" /> Add New Property
+          </Button>
+        </Link>
+      </div>
+
+      {/* Quick Action: View Tenant Requests */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="bg-blue-600 text-white p-3 rounded-xl shadow-sm">
+            <Bell className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Tenant Rental Requests</h2>
+            <p className="text-xs text-gray-600 mt-0.5">
+              Check incoming rental requests from interested tenants and approve or reject them.
+            </p>
+          </div>
+        </div>
+        <Link href="/dashboard/landlord/requests">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs px-5">
+            View Requests
           </Button>
         </Link>
       </div>
@@ -108,7 +128,6 @@ export default function LandlordDashboard() {
                           const res = await api(`/api/landlord/properties/${propertyId}`, { method: "DELETE" });
                           if (res) {
                             toast.success("Property deleted successfully!");
-                            
                             setProperties(properties.filter(p => (p.id || p._id) !== propertyId));
                           } else {
                             toast.error("Failed to delete property.");
