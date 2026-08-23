@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 "use server";
 
@@ -22,7 +23,6 @@ const setAuthCookies = async ({ accessToken, refreshToken }: { accessToken: stri
   })
 
 }
-
 // export const loginAction = async (previousState: LoginState | null, formData: FormData) => {
 //   const email = formData.get("email");
 //   const password = formData.get("password");
@@ -46,7 +46,6 @@ const setAuthCookies = async ({ accessToken, refreshToken }: { accessToken: stri
 //   await setAuthCookies(res.data)
 //   redirect("/dashboard")
 // }
-
 export const loginAction = async (previousState: LoginState | null, formData: FormData) => {
   const email = formData.get("email");
   const password = formData.get("password");
@@ -88,40 +87,69 @@ export const loginAction = async (previousState: LoginState | null, formData: Fo
   }
 };
 
+// export const registerAction = async (previousState: LoginState | null, formData: FormData) => {
+//   const name = formData.get("name");
+//   const email = formData.get("email");
+//   const password = formData.get("password");
+//   const role = formData.get("role");
+
+//   const res = await api("/api/auth/register", {
+
+//     method: "POST",
+
+//     body: JSON.stringify({ name, email, password, role }),
+//   });
+
+// console.log(res,"Register API Response:")
+//   if (!res.ok) {
+//     return {
+//       success: false,
+//       message: "Register failed. Check your credentials.",
+//     };
+//   }
+//   const login = await api("/api/auth/login", {
+//     method: "POST",
+//     body: JSON.stringify({
+//       email, password
+//     })
+
+//   })
+//   await setAuthCookies(login.data);
+//   redirect("/auth/login")
+// }
+
 export const registerAction = async (previousState: LoginState | null, formData: FormData) => {
   const name = formData.get("name");
   const email = formData.get("email");
   const password = formData.get("password");
   const role = formData.get("role");
 
+  try {
+    const res = await api("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password, role }),
+    });
 
-  const res = await api("/api/auth/register", {
+    console.log(res, "Register API Response:");
 
-    method: "POST",
+    // যদি ব্যাকএন্ড থেকে এরর রিটার্ন করে
+    if (res && res.success === false) {
+      return {
+        success: false,
+        message: res.message || "Register failed. Check your credentials.",
+      };
+    }
 
-    body: JSON.stringify({ name, email, password, role }),
-  });
-
-console.log(res,"Register API Response:")
-
-  if (!res.ok) {
+    // সফল হলে লগইন পেজে রিডাইরেক্ট হবে
+    redirect("/auth/login");
+  } catch (error: any) {
+    console.error("Registration error:", error);
     return {
       success: false,
-      message: "Register failed. Check your credentials.",
+      message: error.message || "Something went wrong during registration.",
     };
   }
-  const login = await api("/api/auth/login", {
-    method: "POST",
-    body: JSON.stringify({
-      email, password
-    })
-
-  })
-  await setAuthCookies(login.data);
-  redirect("/auth/login")
-
-}
-
+};
 
 export const logoutAction = async () => {
   const cookie = await cookies();
