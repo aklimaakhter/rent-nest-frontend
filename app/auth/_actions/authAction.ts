@@ -47,7 +47,6 @@ const setAuthCookies = async ({ accessToken, refreshToken }: { accessToken: stri
 //   redirect("/dashboard")
 // }
 
-
 export const loginAction = async (previousState: LoginState | null, formData: FormData) => {
   const email = formData.get("email");
   const password = formData.get("password");
@@ -65,7 +64,6 @@ export const loginAction = async (previousState: LoginState | null, formData: Fo
   }
 
   await setAuthCookies(res.data);
-
   
   let userRole = "LANDLORD";
   try {
