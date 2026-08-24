@@ -21,8 +21,8 @@ export default function UpdatePropertyForm() {
 
     const fetchData = async () => {
       try {
-        // সঠিক ব্যাকটিক (`) ব্যবহার করা হয়েছে
-        const propRes: any = await api(`/api/landlord/properties/${propertyId}`, {
+        
+        const propRes: any = await api(`/api/properties/${propertyId}`, {
           method: "GET",
         });
 

@@ -3,35 +3,37 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { api } from "@/lib/api";
 
 export default function TenantPaymentPage() {
   const params = useParams();
   const requestId = params?.id as string;
-  
+
   const [requestDetails, setRequestDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
 
   useEffect(() => {
+    if (!requestId) return;
+
     const fetchRequestDetails = async () => {
       try {
         
-        const res = await fetch(`http://localhost:5000/api/rentals/${requestId}`, {
-          credentials: "include",
+        const res: any = await api(`/api/rentals/${requestId}`, {
+          method: "GET",
         });
-        const data = await res.json();
 
-        if (data.success && data.data) {
-          setRequestDetails(data.data);
+        if (res && (res.success || res.ok) && res.data) {
+          setRequestDetails(res.data);
         } else {
           
-          const listRes = await fetch("http://localhost:5000/api/rentals", {
-            credentials: "include",
+          const listRes: any = await api("/api/rentals", {
+            method: "GET",
           });
-          const listData = await listRes.json();
-          
-          if (listData.success && Array.isArray(listData.data)) {
-            const found = listData.data.find(
+
+          const listData = listRes?.data || listRes;
+          if (listRes && Array.isArray(listData)) {
+            const found = listData.find(
               (r: any) => String(r.id || r._id) === String(requestId)
             );
             if (found) {
@@ -39,79 +41,32 @@ export default function TenantPaymentPage() {
             }
           }
         }
-      } catch (error) {
-        console.error("Failed to load request details", error);
+      } catch (err) {
+        console.error("Failed to load request details", err);
       } finally {
         setLoading(false);
       }
     };
 
-    if (requestId) {
-      fetchRequestDetails();
-    }
+    fetchRequestDetails();
   }, [requestId]);
 
- const handleStripeCheckout = async () => {
-    try {
-      setPaying(true);
-      const res = await fetch("http://localhost:5000/api/payments/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ rentalRequestId: requestId }),
-      });
-
-      const result = await res.json();
-      console.log("Full Payment API Response JSON:", JSON.stringify(result, null, 2));
-
-      
-      const checkoutUrl = result.data?.checkoutUrl || result.url || result.data?.url;
-
-      if (result.success && checkoutUrl) {
-        window.location.href = checkoutUrl;
-      } else {
-        alert(result.message || "Failed to create Stripe checkout session.");
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
-      alert("Something went wrong with the payment process.");
-    } finally {
-      setPaying(false);
-    }
-  };
   if (loading) {
-    return <p className="p-6 text-center text-gray-600">Loading payment details...</p>;
+    return <div className="text-center py-12 text-gray-500 text-xs">Loading payment details...</div>;
   }
 
   if (!requestDetails) {
-    return (
-      <div className="p-6 max-w-xl mx-auto text-center space-y-4 mt-10">
-        <p className="text-red-500 font-medium">Rental request not found or invalid ID.</p>
-        <p className="text-xs text-gray-400">Request ID: {requestId}</p>
-      </div>
-    );
+    return <div className="text-center py-12 text-red-500 text-xs">Rental request not found!</div>;
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-6 bg-white border rounded-2xl shadow-sm mt-10">
-      <h1 className="text-2xl font-bold text-gray-900">Complete Rental Payment</h1>
-      
-      <div className="space-y-3 text-sm text-gray-700 border-t border-b py-4">
-        <p><strong>Property:</strong> {requestDetails.property?.title || requestDetails.propertyTitle}</p>
-        <p><strong>Location:</strong> {requestDetails.property?.location || requestDetails.location}</p>
-        <p><strong>Monthly Rent:</strong> ${requestDetails.property?.price || requestDetails.price}</p>
-        <p><strong>Status:</strong> <span className="text-emerald-600 font-semibold">{requestDetails.status}</span></p>
+    <div className="max-w-2xl mx-auto bg-white border border-gray-100 rounded-2xl shadow-sm p-6 md:p-8 space-y-6">
+      <h1 className="text-lg font-bold text-gray-800">Complete Your Payment</h1>
+      <div className="space-y-2 text-xs text-gray-600">
+        <p><strong>Property:</strong> {requestDetails?.property?.title || "N/A"}</p>
+        <p><strong>Price:</strong> BDT {requestDetails?.property?.price || "N/A"}</p>
+        <p><strong>Status:</strong> {requestDetails?.status || "Pending"}</p>
       </div>
-
-      <button
-        onClick={handleStripeCheckout}
-        disabled={paying}
-        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-3 font-medium transition shadow-sm disabled:opacity-50"
-      >
-        {paying ? "Redirecting to Stripe..." : "Pay Securely with Stripe"}
-      </button>
     </div>
   );
 }
