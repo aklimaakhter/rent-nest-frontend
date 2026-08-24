@@ -20,7 +20,7 @@ export default function UpdatePropertyForm() {
 
     const fetchData = async () => {
       try {
-        // ১. সঠিক ল্যান্ডলর্ড প্রপার্টি ফেচ রুট
+        
         const propRes = await fetch(`http://localhost:5000/api/landlord/properties/${propertyId}`, {
           method: "GET",
           credentials: "include",
@@ -28,7 +28,7 @@ export default function UpdatePropertyForm() {
         const propData = await propRes.json();
         setProperty(propData?.data || propData?.property || propData);
 
-        // ২. ক্যাটাগরি ফেচ রুট
+        
         const catRes = await fetch("http://localhost:5000/api/categories", {
           method: "GET",
         });

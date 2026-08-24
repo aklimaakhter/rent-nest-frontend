@@ -15,7 +15,7 @@ export default function RequestRentButton({ propertyId }: { propertyId: string }
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include", // কুকি বা সেশন হ্যান্ডেল করার জন্য
+          credentials: "include", 
           body: JSON.stringify({ propertyId }),
         });
 

@@ -1,23 +1,21 @@
 "use server";
 
-import { api } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 
-// সব ইউজারের ডাটা ফেচ করার জন্য অ্যাকশন
-// app/dashboard/admin/_action/adminAction.ts
+
 
 export async function getAllUsersAction() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
 
-    // ব্যাকএন্ডের সঠিক রুট এবং হেডার ফরম্যাট
+  
     const res = await fetch("http://localhost:5000/api/admin/users", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // এটি ব্যাকএন্ডের auth মিডলওয়্যারের জন্য জরুরি
+        Authorization: `Bearer ${token}`,
       },
       cache: "no-store",
     });
@@ -36,23 +34,20 @@ export async function getAllUsersAction() {
 }
 
 
-
-
-// ইউজারের স্ট্যাটাস পরিবর্তন করার জন্য অ্যাকশন
 export async function toggleUserStatusAction(userId: string, currentStatus: string) {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
     
-    // স্ট্যাটাস টগল করা
+    
     const newStatus = currentStatus === "ACTIVE" ? "BANNED" : "ACTIVE";
     
-    // পোস্টম্যানের মতো সঠিক রুট এবং হেডার ব্যবহার করা
+    
     const res = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // টোকেন পাস করা বাধ্যতামূলক
+        Authorization: `Bearer ${token}`, 
       },
       body: JSON.stringify({ status: newStatus }),
     });
@@ -97,7 +92,7 @@ export async function getAllPropertiesAction() {
   }
 }
 
-// সব রেন্টাল রিকোয়েস্ট ফেচ করার অ্যাকশন (Admin Content Moderation)
+
 export async function getAllRentalsAction() {
   try {
     const cookieStore = await cookies();

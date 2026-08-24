@@ -37,9 +37,6 @@ export default function TenantDashboard() {
   };
 
   return (
-    // <button onClick={() => handlePayNow(req.id || req._id)}>
-    //   {loadingId === (req.id || req._id) ? "Redirecting..." : "Pay Now"}
-    // </button>
     null
   );
 }

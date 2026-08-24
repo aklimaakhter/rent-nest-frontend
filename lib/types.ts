@@ -6,12 +6,6 @@ export type LoginState = {
   role?: string;
 };
 
-// export type User = {
-//   id: string,
-//   name: string,
-//   email: string,
-//   role: Role
-// }
 
 export type TenantRequest = {
   id: string;

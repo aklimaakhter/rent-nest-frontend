@@ -18,14 +18,14 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
   let currentUser: any = null;
 
   try {
-    // প্রপার্টি ডিটেইলস ফেচ করা
+    
     const res: any = await api(`/api/properties/${id}`, {
       method: "GET",
       cache: "no-store",
     });
     property = res?.data || res?.property || res;
 
-    // বর্তমান লগইন করা ইউজারের তথ্য ফেচ করা (যদি টোকেন থাকে)
+    
     if (token) {
       const userRes: any = await api(`/api/auth/me`, {
         method: "GET",
@@ -46,7 +46,7 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
     );
   }
 
-  // চেক করা ইউজার ল্যান্ডলর্ড কি না অথবা এই প্রপার্টির মালিক কি না
+  
   const isLandlord = currentUser?.role === "LANDLORD";
   const isOwner = property?.landlordId === currentUser?.id || property?.landlord === currentUser?.id;
 

@@ -46,7 +46,6 @@ export default function LoginForm() {
         </div>
         <Button
           type="submit"
-          // disabled={pending}
           className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
         >
           {pending ? "Sining in" : "Sign in"}

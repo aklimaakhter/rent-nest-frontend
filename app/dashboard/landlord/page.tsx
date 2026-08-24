@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, MapPin, DollarSign, Bell } from "lucide-react";
+import { Plus, MapPin,  Bell } from "lucide-react";
 import { toast } from "sonner";
 
 export default function LandlordDashboard() {
@@ -33,7 +33,7 @@ export default function LandlordDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Top Banner */}
+      
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Landlord Dashboard</h1>
@@ -48,7 +48,7 @@ export default function LandlordDashboard() {
         </Link>
       </div>
 
-      {/* Quick Action: View Tenant Requests */}
+     
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="bg-blue-600 text-white p-3 rounded-xl shadow-sm">
@@ -77,7 +77,7 @@ export default function LandlordDashboard() {
         ) : properties.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center space-y-3">
             <p className="text-xs text-gray-500">
-              No properties found. Click &quot;+ Add New Property&quot; to list your first rental.
+              No properties found. Click + Add New Property to list your first rental.
             </p>
           </div>
         ) : (
@@ -106,8 +106,8 @@ export default function LandlordDashboard() {
 
                   <CardContent className="p-4 pt-0">
                     <p className="text-xs text-gray-600 line-clamp-2 mt-2">{property.description}</p>
-                    <div className="mt-3 flex items-center text-emerald-600 font-bold text-sm">
-                      <DollarSign className="w-4 h-4" /> {property.price} / month
+                    <div className="mt-3 flex items-center gap-1 text-emerald-600 font-bold text-sm">
+                      ৳{property.price} / month
                     </div>
                   </CardContent>
                 </div>

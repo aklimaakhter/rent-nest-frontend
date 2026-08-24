@@ -90,7 +90,6 @@ export default function RegisterForm() {
 
       <Button
         type="submit"
-        // disabled={pending}
         className="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white"
       >
         {pending ? "Creating account..." : "Create Account"}

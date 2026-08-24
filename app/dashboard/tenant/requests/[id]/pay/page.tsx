@@ -15,7 +15,7 @@ export default function TenantPaymentPage() {
   useEffect(() => {
     const fetchRequestDetails = async () => {
       try {
-        // ১. প্রথমে সরাসরি একক রিকোয়েস্ট আনার এপিআই চেষ্টা করা (GET /api/rentals/:id)
+        
         const res = await fetch(`http://localhost:5000/api/rentals/${requestId}`, {
           credentials: "include",
         });
@@ -24,7 +24,7 @@ export default function TenantPaymentPage() {
         if (data.success && data.data) {
           setRequestDetails(data.data);
         } else {
-          // ২. যদি একক এপিআই কাজ না করে, তবে সব রিকোয়েস্টের লিস্ট এনে ফিল্টার করা (GET /api/rentals)
+          
           const listRes = await fetch("http://localhost:5000/api/rentals", {
             credentials: "include",
           });
@@ -66,7 +66,7 @@ export default function TenantPaymentPage() {
       const result = await res.json();
       console.log("Full Payment API Response JSON:", JSON.stringify(result, null, 2));
 
-      // সঠিক পাথ থেকে চেকআউট ইউআরএল বের করা
+      
       const checkoutUrl = result.data?.checkoutUrl || result.url || result.data?.url;
 
       if (result.success && checkoutUrl) {

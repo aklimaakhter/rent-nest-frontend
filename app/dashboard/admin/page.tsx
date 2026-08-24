@@ -21,9 +21,9 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // পেজিনেশনের জন্য স্টেট (ইউজার ট্যাবের জন্য)
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // প্রতি পেজে কয়টি ইউজার দেখাবে
+  const itemsPerPage = 5; 
 
   useEffect(() => {
     async function fetchAdminData() {
@@ -60,21 +60,21 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // স্ট্যাটিস্টিক্স কাউন্ট
+  
   const totalUsers = users.length;
   const activeUsers = users.filter((u) => u.status === "ACTIVE" || !u.status).length;
   const bannedUsers = users.filter((u) => u.status && u.status !== "ACTIVE").length;
   const totalProperties = properties.length;
   const totalRentals = rentals.length;
 
-  // সার্চ ফিল্টার
+  
   const filteredUsers = users.filter(
     (user) =>
       user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // পেজিনেশন লজিক
+  
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage);
@@ -86,7 +86,7 @@ export default function AdminDashboardPage() {
         <p className="text-gray-500">Overview of users, properties, rentals, and platform content.</p>
       </div>
 
-      {/* গ্লোবাল ওভারভিউ কার্ডস */}
+      
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-gray-500 text-xs font-medium uppercase">Total Users</h3>
@@ -110,7 +110,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* নেভিগেশন ট্যাব */}
+      
       <div className="flex border-b border-gray-200 space-x-6">
         <button
           onClick={() => { setActiveTab("users"); setCurrentPage(1); }}
@@ -144,13 +144,13 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
-      {/* কন্টেন্ট সেকশন */}
+      
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-500">Loading platform data...</div>
         ) : (
           <>
-            {/* ১. ইউজার ম্যানেজমেন্ট টেবিল উইথ পেজিনেশন */}
+            
             {activeTab === "users" && (
               <div>
                 <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -161,7 +161,7 @@ export default function AdminDashboardPage() {
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
-                      setCurrentPage(1); // সার্চ করলে আবার প্রথম পেজে নিয়ে যাবে
+                      setCurrentPage(1); 
                     }}
                     className="px-4 py-2 border rounded-lg text-sm w-full md:w-72 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
@@ -223,7 +223,7 @@ export default function AdminDashboardPage() {
                   </table>
                 </div>
 
-                {/* পেজিনেশন কন্ট্রোল ফুটার */}
+                
                 {totalPages > 1 && (
                   <div className="p-4 border-t border-gray-100 flex items-center justify-between bg-gray-50 text-sm">
                     <span className="text-gray-500">
@@ -253,7 +253,7 @@ export default function AdminDashboardPage() {
               </div>
             )}
 
-            {/* ২. প্রপার্টি মডারেশন টেবিল */}
+            
             {activeTab === "properties" && (
               <div>
                 <div className="p-5 border-b border-gray-100">
@@ -299,7 +299,7 @@ export default function AdminDashboardPage() {
               </div>
             )}
 
-            {/* ৩. রেন্টাল রিকোয়েস্ট মডারেশন টেবিল */}
+            
             {activeTab === "rentals" && (
               <div>
                 <div className="p-5 border-b border-gray-100">

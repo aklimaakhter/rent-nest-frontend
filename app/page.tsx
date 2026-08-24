@@ -48,7 +48,7 @@ export default async function HomePage() {
 
         <div className="relative z-10 max-w-4xl mx-auto space-y-6">
           <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight">
-            Find & List Rental Properties with Ease 🏠
+            Find & List Rental Properties with Ease 
           </h1>
           <p className="text-gray-200 text-lg max-w-2xl mx-auto">
             Discover thousands of apartments, houses, and rooms for rent or list your own property in minutes.

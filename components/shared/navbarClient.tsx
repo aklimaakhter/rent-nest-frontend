@@ -17,7 +17,7 @@ export default function NavbarClient({ token, role, logoutAction }: NavbarClient
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
-  // রোল অনুযায়ী ড্যাশবোর্ড পাথ নির্ধারণ
+  
   let dashboardHref = "/dashboard/landlord";
   if (role === "TENANT") dashboardHref = "/dashboard/tenant";
   else if (role === "ADMIN") dashboardHref = "/dashboard/admin";
@@ -40,12 +40,12 @@ export default function NavbarClient({ token, role, logoutAction }: NavbarClient
         
         {/* Logo & Brand Name */}
         <Link href="/" className="flex items-center gap-2">
-          <div className="relative w-10 h-10 flex items-center justify-center">
+          <div className="relative w-16 h-16 flex items-center justify-center">
             <Image
               src="/logo.png"
               alt="RentNest Logo"
-              width={200}
-              height={200}
+              width={300}
+              height={300}
               className="object-contain w-auto h-auto"
               priority
             />
@@ -53,7 +53,7 @@ export default function NavbarClient({ token, role, logoutAction }: NavbarClient
           <span className="text-lg sm:text-xl font-bold text-emerald-600">RentNest</span>
         </Link>
 
-        {/* Desktop Nav Links (Active link indicator সহ) */}
+        {/* Desktop Nav Links (Active link indicator ) */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
