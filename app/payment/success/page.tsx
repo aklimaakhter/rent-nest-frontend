@@ -4,6 +4,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { confirmPaymentAction } from "../_actions/paymentActions";
+
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
@@ -13,36 +15,20 @@ export default function PaymentSuccessPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const confirmPaymentOnBackend = async () => {
+    const handleConfirmation = async () => {
       if (!sessionId) {
         setConfirming(false);
         return;
       }
 
-      try {
-        const res = await fetch("http://localhost:5000/api/payments/confirm", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ sessionId }),
-        });
-
-        const data = await res.json();
-
-        if (!data.success) {
-          setErrorMsg(data.message || "Failed to confirm payment on server.");
-        }
-      } catch (error) {
-        console.error("Payment confirmation error:", error);
-        setErrorMsg("Something went wrong while confirming the payment.");
-      } finally {
-        setConfirming(false);
+      const result = await confirmPaymentAction(sessionId);
+      if (!result.success) {
+        setErrorMsg(result.message || null);
       }
+      setConfirming(false);
     };
 
-    confirmPaymentOnBackend();
+    handleConfirmation();
   }, [sessionId]);
 
   return (

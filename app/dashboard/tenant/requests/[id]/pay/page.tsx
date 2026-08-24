@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { fetchRentalDetailsAction } from "../../../_actions/rentalActions";
 
 export default function TenantPaymentPage() {
   const params = useParams();
@@ -11,62 +13,77 @@ export default function TenantPaymentPage() {
 
   const [requestDetails, setRequestDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [paying, setPaying] = useState(false);
+  const [paying, startTransition] = useTransition();
 
   useEffect(() => {
     if (!requestId) return;
 
-    const fetchRequestDetails = async () => {
-      try {
-        
-        const res: any = await api(`/api/rentals/${requestId}`, {
-          method: "GET",
-        });
-
-        if (res && (res.success || res.ok) && res.data) {
-          setRequestDetails(res.data);
-        } else {
-          
-          const listRes: any = await api("/api/rentals", {
-            method: "GET",
-          });
-
-          const listData = listRes?.data || listRes;
-          if (listRes && Array.isArray(listData)) {
-            const found = listData.find(
-              (r: any) => String(r.id || r._id) === String(requestId)
-            );
-            if (found) {
-              setRequestDetails(found);
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load request details", err);
-      } finally {
-        setLoading(false);
+    const loadData = async () => {
+      setLoading(true);
+      const result = await fetchRentalDetailsAction(requestId);
+      if (result.success) {
+        setRequestDetails(result.data);
+      } else {
+        toast.error(result.message);
       }
+      setLoading(false);
     };
 
-    fetchRequestDetails();
+    loadData();
   }, [requestId]);
+
+  const handlePayment = async () => {
+    startTransition(async () => {
+      try {
+        
+        const res: any = await api(`/api/payments/create-checkout-session`, {
+          method: "POST",
+          body: JSON.stringify({ rentalId: requestId }),
+        });
+
+        if (res?.success || res?.url || res?.ok) {
+          const paymentUrl = res.url || res.data?.url;
+          if (paymentUrl) {
+            window.location.href = paymentUrl;
+          } else {
+            toast.success("Payment initiated successfully!");
+          }
+        } else {
+          toast.error(res?.message || "Failed to initiate payment");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Something went wrong during payment!");
+      }
+    });
+  };
 
   if (loading) {
     return <div className="text-center py-12 text-gray-500 text-xs">Loading payment details...</div>;
   }
 
   if (!requestDetails) {
-    return <div className="text-center py-12 text-red-500 text-xs">Rental request not found!</div>;
+    return <div className="text-center py-12 text-red-500 text-xs">Rental request not found or invalid ID.</div>;
   }
 
   return (
     <div className="max-w-2xl mx-auto bg-white border border-gray-100 rounded-2xl shadow-sm p-6 md:p-8 space-y-6">
       <h1 className="text-lg font-bold text-gray-800">Complete Your Payment</h1>
-      <div className="space-y-2 text-xs text-gray-600">
-        <p><strong>Property:</strong> {requestDetails?.property?.title || "N/A"}</p>
-        <p><strong>Price:</strong> BDT {requestDetails?.property?.price || "N/A"}</p>
-        <p><strong>Status:</strong> {requestDetails?.status || "Pending"}</p>
+      
+      <div className="space-y-3 text-xs text-gray-600 bg-gray-50 p-4 rounded-xl">
+        <p><strong>Property:</strong> {requestDetails?.property?.title || requestDetails?.propertyTitle || "N/A"}</p>
+        <p><strong>Location:</strong> {requestDetails?.property?.location || "N/A"}</p>
+        <p><strong>Price:</strong> BDT {requestDetails?.property?.price || requestDetails?.price || "N/A"}</p>
+        <p><strong>Status:</strong> <span className="uppercase font-semibold text-emerald-600">{requestDetails?.status || "Pending"}</span></p>
       </div>
+
+      <button
+        onClick={handlePayment}
+        disabled={paying}
+        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition disabled:opacity-50 shadow-md"
+      >
+        {paying ? "Processing Payment..." : "Pay Now"}
+      </button>
     </div>
   );
 }
