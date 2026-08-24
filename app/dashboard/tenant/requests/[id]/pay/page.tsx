@@ -36,7 +36,7 @@ export default function TenantPaymentPage() {
     startTransition(async () => {
       try {
         
-        const res: any = await api(`/api/payments/create-checkout-session`, {
+        const res: any = await api(`/api/payments/create`, {
           method: "POST",
           body: JSON.stringify({ rentalId: requestId }),
         });
