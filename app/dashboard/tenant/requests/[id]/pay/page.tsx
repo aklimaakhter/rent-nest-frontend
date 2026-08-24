@@ -35,10 +35,9 @@ export default function TenantPaymentPage() {
   const handlePayment = async () => {
     startTransition(async () => {
       try {
-        
         const res: any = await api(`/api/payments/create`, {
           method: "POST",
-          body: JSON.stringify({ rentalId: requestId }),
+          body: JSON.stringify({ rentalRequestId: requestId }), 
         });
 
         if (res?.success || res?.url || res?.ok) {
