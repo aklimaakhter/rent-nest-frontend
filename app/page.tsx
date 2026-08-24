@@ -1,59 +1,67 @@
 import Link from "next/link";
-import Image from "next/image";
-import { getMe } from "@/service/getMe";
 
 interface Property {
-  _id: string;
+  id: string;
   title: string;
   location: string;
   price: number;
-  images: string[];
-  category: string;
+  image: string;
+  category: {
+    name: string;
+  };
 }
 
 async function getFeaturedProperties(): Promise<Property[]> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ""}/api/properties?limit=6`, {
+    // সরাসরি ব্যাকএন্ডের ইউআরএল দিয়ে চেক করা হচ্ছে
+    const res = await fetch("http://localhost:5000/api/properties?limit=6", {
       cache: "no-store",
     });
     if (!res.ok) return [];
-    const data = await res.json();
-    return data.properties || data;
+    
+    const responseJson = await res.json();
+    const propertyList = responseJson.data || responseJson.properties || responseJson;
+    
+    return Array.isArray(propertyList) ? propertyList : [];
   } catch (error) {
     return [];
   }
 }
 
 export default async function HomePage() {
-  const properties = await getFeaturedProperties();
-
-  const user= await getMe()
+  const allProperties = await getFeaturedProperties();
+  const properties = allProperties.slice(0, 6);
 
   return (
     <div className="space-y-16 pb-16">
-      Hero Section
-      {
-        JSON.stringify(user)
-      }
+      
+      {/* 1. Hero Section with Background Picture */}
+      <section className="relative bg-gray-900 py-32 px-4 text-center overflow-hidden rounded-3xl max-w-7xl mx-auto my-6 shadow-xl">
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1600&auto=format&fit=crop"
+            alt="Hero Background"
+            className="w-full h-full object-cover opacity-40"
+          />
+        </div>
 
-      <section className="bg-emerald-50 py-20 px-4 text-center">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+        <div className="relative z-10 max-w-4xl mx-auto space-y-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight">
             Find & List Rental Properties with Ease 🏠
           </h1>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-200 text-lg max-w-2xl mx-auto">
             Discover thousands of apartments, houses, and rooms for rent or list your own property in minutes.
           </p>
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-4 pt-2">
             <Link
               href="/properties"
-              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition shadow-md"
+              className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition shadow-lg"
             >
               Browse Properties
             </Link>
             <Link
               href="/auth/register"
-              className="px-6 py-3 bg-white hover:bg-gray-50 text-emerald-600 font-semibold rounded-xl border border-emerald-200 transition"
+              className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/30 backdrop-blur-md transition"
             >
               Post a Rental
             </Link>
@@ -61,8 +69,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Featured Properties Section */}
-      <section className="max-w-7xl mx-auto px-4">
+      {/* 2. Featured Properties Section (Max 6 properties) */}
+      <section className="max-w-7xl mx-auto px-4 w-full">
         <div className="flex justify-between items-end mb-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">Featured Properties</h2>
@@ -81,18 +89,17 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {properties.map((item) => (
               <div
-                key={item._id}
+                key={item.id}
                 className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg transition group"
               >
-                <div className="relative h-48 w-full bg-gray-100">
-                  <Image
-                    src={item.images?.[0] || "https://via.placeholder.com/400x250?text=Property"}
+                <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
+                  <img
+                    src={item.image || "https://via.placeholder.com/400x250?text=Property"}
                     alt={item.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                   />
-                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full">
-                    {item.category || "Apartment"}
+                  <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-emerald-700 text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
+                    {item.category?.name || "Apartment"}
                   </span>
                 </div>
                 <div className="p-5 space-y-3">
@@ -104,7 +111,7 @@ export default async function HomePage() {
                       <span className="text-gray-400 text-xs"> / month</span>
                     </div>
                     <Link
-                      href={`/properties/${item._id}`}
+                      href={`/properties/${item.id}`}
                       className="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white text-xs font-semibold rounded-lg transition"
                     >
                       View Details
@@ -115,7 +122,18 @@ export default async function HomePage() {
             ))}
           </div>
         )}
+
+        {/* Bottom View All CTA Button */}
+        <div className="text-center mt-12">
+          <Link
+            href="/properties"
+            className="px-8 py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition shadow-md inline-block"
+          >
+            View All Properties →
+          </Link>
+        </div>
       </section>
+
     </div>
   );
 }
