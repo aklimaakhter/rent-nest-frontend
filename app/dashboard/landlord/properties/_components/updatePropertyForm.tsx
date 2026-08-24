@@ -5,6 +5,7 @@ import { useState, useEffect, useTransition } from "react";
 import { useParams } from "next/navigation";
 import { updatePropertyAction } from "../_actions/propertyActions";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
 
 export default function UpdatePropertyForm() {
   const params = useParams();
@@ -20,8 +21,31 @@ export default function UpdatePropertyForm() {
 
     const fetchData = async () => {
       try {
+        const propRes: any = await api(`/api/landlord/properties/${propertyId}`, {
+          method: "GET",
+        });
+
+        if (propRes.ok || propRes.success) {
+          const propData = propRes.data || propRes;
+          setProperty(propData);
+        } else {
+          toast.error("Failed to fetch property details");
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Something went wrong!");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [propertyId]);
+
+    const fetchData = async () => {
+      try {
         
-        const propRes = await fetch(`http://localhost:5000/api/landlord/properties/${propertyId}`, {
+        const propRes = await api("/api/landlord/properties/${propertyId}", {
           method: "GET",
           credentials: "include",
         });
