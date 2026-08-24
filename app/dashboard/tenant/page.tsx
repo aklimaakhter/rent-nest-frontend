@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { cookies } from "next/headers";
+import { BASE_URL } from "@/lib/api";
 
 export default async function TenantDashboardPage() {
   const cookieStore = await cookies();
@@ -8,7 +9,7 @@ export default async function TenantDashboardPage() {
   let requests = [];
 
   try {
-    const res = await fetch("http://localhost:5000/api/rentals", {
+    const res = await fetch(`${BASE_URL}/api/rentals`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

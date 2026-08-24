@@ -14,24 +14,6 @@ export default function LandlordDashboard() {
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  //   useEffect(() => {
-  //   const fetchLandlordProperties = async () => {
-  //     try {
-  //       const res = await getLandlordProperties();
-  //       if (res) {
-  //         setProperties(Array.isArray(res) ? res : res.data || []);
-  //       }
-  //     } catch (err) {
-  //       console.error("Failed to fetch properties", err);
-  //       toast.error("Failed to load your properties.");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchLandlordProperties();
-  // }, []);
-
-
   useEffect(() => {
     const fetchLandlordProperties = async () => {
       try {
@@ -139,24 +121,6 @@ export default function LandlordDashboard() {
                   <Button
                     variant="destructive"
                     className="w-1/2 text-xs rounded-xl bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 shadow-none"
-                    // onClick={async () => {
-                    //   if (confirm("Are you sure you want to delete this property?")) {
-                    //     try {
-                    //       const propertyId = property.id || property._id;
-                    //       const res = await api(`/api/landlord/properties/${propertyId}`, { method: "DELETE" });
-                    //       if (res) {
-                    //         toast.success("Property deleted successfully!");
-                    //         setProperties(properties.filter(p => (p.id || p._id) !== propertyId));
-                    //       } else {
-                    //         toast.error("Failed to delete property.");
-                    //       }
-                    //     } catch (err) {
-                    //       console.error("Delete failed", err);
-                    //       toast.error("Something went wrong.");
-                    //     }
-                    //   }
-                    // }}
-
                     onClick={async () => {
                       if (confirm("Are you sure you want to delete this property?")) {
                         const propertyId = property.id || property._id;
