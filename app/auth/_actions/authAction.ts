@@ -79,9 +79,9 @@ export const loginAction = async (previousState: LoginState | null, formData: Fo
   }
 
   if (userRole === "LANDLORD") {
-    redirect("/dashboard/landlord");
+    redirect("/");
   } else if (userRole === "TENANT") {
-    redirect("/properties"); 
+    redirect("/"); 
   } else {
     redirect("/");
   }
