@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllUsersAction, toggleUserStatusAction } from "./_action/adminAction";
-import { ApiResponse, User } from "@/lib/types";
-
-
+import { User } from "@/lib/types";
 
 export default function AdminDashboardPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -12,78 +10,72 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  
-  const fetchUsers = async () => {
-    setLoading(true);
-    const res = (await getAllUsersAction()) as ApiResponse;
-    
-    if (res) {
-      const userList = res.data || res.users || (Array.isArray(res) ? (res as unknown as User[]) : []);
-      setUsers(userList);
-    }
-    setLoading(false);
-  };
-
-  
+  // ফাংশনটি সরাসরি useEffect এর ভেতরে ডিক্লেয়ার করা হলো, ফলে কোনো ডিপেন্ডেন্সি এরর হবে না
   useEffect(() => {
-    const fetchUsers = async () => {
+    async function fetchUsers() {
       setLoading(true);
-      const res = (await getAllUsersAction()) as ApiResponse;
-      
-      if (res) {
-        const userList = res.data || res.users || (Array.isArray(res) ? (res as unknown as User[]) : []);
+      try {
+        const res: any = await getAllUsersAction();
+        const userList = res?.data || res?.users || (Array.isArray(res) ? res : []);
         setUsers(userList);
+      } catch (error) {
+        console.error("Failed to fetch users", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    };
+    }
 
     fetchUsers();
   }, []);
 
-  // ব্যান/আনব্যান হ্যান্ডলার
   const handleToggleStatus = async (userId: string, status: string) => {
     setUpdatingId(userId);
-    await toggleUserStatusAction(userId, status);
-    await fetchUsers();
-    setUpdatingId(null);
+    try {
+      await toggleUserStatusAction(userId, status);
+      
+      // স্ট্যাটাস পরিবর্তনের পর ইউজার লিস্ট আবার ফেচ করার জন্য
+      const res: any = await getAllUsersAction();
+      const userList = res?.data || res?.users || (Array.isArray(res) ? res : []);
+      setUsers(userList);
+    } catch (error) {
+      console.error("Failed to update status", error);
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
-  // সার্চ ফিল্টার
   const filteredUsers = users.filter(
     (user) =>
-      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalUsers = users.length;
+  const activeUsers = users.filter((u) => u.status === "ACTIVE" || !u.status).length;
+  const bannedUsers = users.filter((u) => u.status && u.status !== "ACTIVE").length;
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8">
-      {/* ১. ড্যাশবোর্ড হেডার */}
       <div>
         <h1 className="text-3xl font-bold text-gray-800">Admin Moderation Dashboard</h1>
         <p className="text-gray-500">Overview of users, statistics, and platform content.</p>
       </div>
 
-      {/* ২. গ্লোবাল স্ট্যাটিস্টিক্স (Stats Cards) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-gray-500 text-sm font-medium">Total Users</h3>
-          <p className="text-3xl font-bold text-emerald-600 mt-2">{users.length}</p>
+          <p className="text-3xl font-bold text-emerald-600 mt-2">{totalUsers}</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-gray-500 text-sm font-medium">Active Accounts</h3>
-          <p className="text-3xl font-bold text-blue-600 mt-2">
-            {users.filter((u) => u.status === "ACTIVE").length}
-          </p>
+          <p className="text-3xl font-bold text-blue-600 mt-2">{activeUsers}</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="text-gray-500 text-sm font-medium">Banned Accounts</h3>
-          <p className="text-3xl font-bold text-rose-600 mt-2">
-            {users.filter((u) => u.status !== "ACTIVE").length}
-          </p>
+          <p className="text-3xl font-bold text-rose-600 mt-2">{bannedUsers}</p>
         </div>
       </div>
 
-      {/* ৩. ইউজার ম্যানেজমেন্ট টেবিল (User Management Table) */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <h2 className="text-xl font-bold text-gray-800">User Management</h2>
@@ -97,7 +89,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading user management data...</div>
+          <div className="p-8 text-center text-gray-500">Loading users...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -114,29 +106,17 @@ export default function AdminDashboardPage() {
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
                     <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 font-medium text-gray-800">{user.name}</td>
+                      <td className="p-4 font-medium text-gray-800">{user.name || "N/A"}</td>
                       <td className="p-4 text-gray-600">{user.email}</td>
                       <td className="p-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            user.role === "ADMIN"
-                              ? "bg-purple-100 text-purple-700"
-                              : user.role === "LANDLORD"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-gray-100 text-gray-700"
-                          }`}
-                        >
+                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
                           {user.role}
                         </span>
                       </td>
                       <td className="p-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                            user.status === "ACTIVE"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-rose-100 text-rose-700"
-                          }`}
-                        >
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
+                          (user.status === "ACTIVE" || !user.status) ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                        }`}>
                           {user.status || "ACTIVE"}
                         </span>
                       </td>
@@ -146,16 +126,12 @@ export default function AdminDashboardPage() {
                             onClick={() => handleToggleStatus(user.id, user.status || "ACTIVE")}
                             disabled={updatingId === user.id}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                              user.status === "ACTIVE"
+                              user.status === "ACTIVE" || !user.status
                                 ? "bg-rose-50 text-rose-600 hover:bg-rose-100"
                                 : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                             }`}
                           >
-                            {updatingId === user.id
-                              ? "Updating..."
-                              : user.status === "ACTIVE"
-                              ? "Ban User"
-                              : "Unban User"}
+                            {updatingId === user.id ? "Updating..." : (user.status === "ACTIVE" || !user.status) ? "Ban User" : "Unban User"}
                           </button>
                         )}
                       </td>
