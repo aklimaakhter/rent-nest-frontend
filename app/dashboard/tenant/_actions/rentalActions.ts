@@ -2,20 +2,35 @@
 "use server";
 
 import { api } from "@/lib/api";
+import { cookies } from "next/headers";
 
 export async function fetchRentalDetailsAction(requestId: string) {
   try {
-   
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value || cookieStore.get("accessToken")?.value;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    
     const res: any = await api(`/api/rentals/${requestId}`, {
       method: "GET",
+      headers,
     });
 
     if (res && (res.success || res.ok) && res.data) {
       return { success: true, data: res.data };
     }
 
+    
     const listRes: any = await api("/api/rentals", {
       method: "GET",
+      headers,
     });
 
     const listData = listRes?.data || listRes;
