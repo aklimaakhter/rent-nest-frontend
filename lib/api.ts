@@ -1,14 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+
+export const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_APP_URL || 'http://localhost:5000';
+
 export const api = async (path: string, options?: RequestInit) => {
   const { headers, ...rest } = options || {};
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_APP_URL}${path}`, {
+
+
+    const res = await fetch(`${BASE_URL}${path}`, {
       headers: {
         "Content-Type": "application/json",
         ...headers,
       },
-      credentials: "include", 
+      credentials: "include",
       ...rest,
     });
 

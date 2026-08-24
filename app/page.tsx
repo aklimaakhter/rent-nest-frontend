@@ -13,7 +13,7 @@ interface Property {
 
 async function getFeaturedProperties(): Promise<Property[]> {
   try {
-    // এখানে আপনার ব্যাকএন্ডের লাইভ লিংক বসিয়ে দিন
+    
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_APP_URL || "https://your-backend-api.onrender.com";
     const res = await fetch(`${baseUrl}/api/properties?limit=6`, {
       cache: "no-store",
