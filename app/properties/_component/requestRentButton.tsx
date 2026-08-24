@@ -92,13 +92,13 @@
 // }
 
 
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { api } from "@/lib/api";
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { requestRentAction } from "../_actions/requestRentAction";
+
 
 export default function RequestRentButton({ propertyId }: { propertyId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -106,17 +106,10 @@ export default function RequestRentButton({ propertyId }: { propertyId: string }
   const handleRequest = async () => {
     startTransition(async () => {
       try {
-        
-        const response: any = await api("/api/rentals", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ propertyId }),
-        });
+        const response: any = await requestRentAction(propertyId);
 
-        if (!response.ok) {
-          toast.error(response.message || "Failed to submit request");
+        if (!response || response.success === false) {
+          toast.error(response?.message || "Failed to submit request");
         } else {
           toast.success("Rental request sent successfully!");
         }
