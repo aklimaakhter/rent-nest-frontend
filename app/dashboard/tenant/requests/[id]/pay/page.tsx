@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { fetchRentalDetailsAction } from "../../../_actions/rentalActions";
+import { createPaymentAction } from "@/app/payment/_actions/paymentActions";
 
 export default function TenantPaymentPage() {
   const params = useParams();
@@ -32,16 +33,41 @@ export default function TenantPaymentPage() {
     loadData();
   }, [requestId]);
 
+  // const handlePayment = async () => {
+  //   startTransition(async () => {
+  //     try {
+  //       const res: any = await api(`/api/payments/create`, {
+  //         method: "POST",
+  //         body: JSON.stringify({ rentalRequestId: requestId }), 
+  //       });
+
+  //       if (res?.success || res?.url || res?.ok) {
+  //         const paymentUrl = res.url || res.data?.url;
+  //         if (paymentUrl) {
+  //           window.location.href = paymentUrl;
+  //         } else {
+  //           toast.success("Payment initiated successfully!");
+  //         }
+  //       } else {
+  //         toast.error(res?.message || "Failed to initiate payment");
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //       toast.error("Something went wrong during payment!");
+  //     }
+  //   });
+  // };
+
+  
+
   const handlePayment = async () => {
     startTransition(async () => {
       try {
-        const res: any = await api(`/api/payments/create`, {
-          method: "POST",
-          body: JSON.stringify({ rentalRequestId: requestId }), 
-        });
+        
+        const res: any = await createPaymentAction(requestId);
 
-        if (res?.success || res?.url || res?.ok) {
-          const paymentUrl = res.url || res.data?.url;
+        if (res?.success || res?.url || res?.data?.url) {
+          const paymentUrl = res.url || res.data?.url || res.data?.checkoutUrl; 
           if (paymentUrl) {
             window.location.href = paymentUrl;
           } else {

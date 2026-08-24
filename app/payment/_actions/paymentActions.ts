@@ -1,34 +1,33 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
-import { api } from "@/lib/api";
+"use server";
 
-export async function confirmPaymentAction(sessionId: string) {
+import { api } from "@/lib/api";
+import { cookies } from "next/headers";
+
+export async function createPaymentAction(rentalRequestId: string) {
   try {
-    const res: any = await api("/api/payments/confirm", {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value || cookieStore.get("accessToken")?.value;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res: any = await api(`/api/payments/create`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ sessionId }),
+      headers,
+      body: JSON.stringify({ rentalRequestId }),
     });
 
-    const data = res?.data || res;
-
-    if (res && (res.success || res.ok)) {
-      return { success: true };
-    } else {
-      return { 
-        success: false, 
-        message: data?.message || "Failed to confirm payment on server." 
-      };
-    }
+    return res;
   } catch (error) {
-    console.error("Payment confirmation error:", error);
-    return { 
-      success: false, 
-      message: "Something went wrong while confirming the payment." 
-    };
+    console.error("Payment creation error:", error);
+    return { success: false, message: "Something went wrong!" };
   }
 }

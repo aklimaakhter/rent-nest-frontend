@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { confirmPaymentAction } from "../_actions/paymentActions";
+import { createPaymentAction } from "../_actions/paymentActions";
 
 
 export default function PaymentSuccessPage() {
@@ -21,7 +21,7 @@ export default function PaymentSuccessPage() {
         return;
       }
 
-      const result = await confirmPaymentAction(sessionId);
+      const result = await createPaymentAction(sessionId);
       if (!result.success) {
         setErrorMsg(result.message || null);
       }
