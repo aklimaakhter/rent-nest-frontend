@@ -21,43 +21,26 @@ export default function UpdatePropertyForm() {
 
     const fetchData = async () => {
       try {
+        // সঠিক ব্যাকটিক (`) ব্যবহার করা হয়েছে
         const propRes: any = await api(`/api/landlord/properties/${propertyId}`, {
           method: "GET",
         });
 
         if (propRes.ok || propRes.success) {
           const propData = propRes.data || propRes;
-          setProperty(propData);
+          setProperty(propData?.data || propData?.property || propData);
         } else {
           toast.error("Failed to fetch property details");
         }
-      } catch (error) {
-        console.error(error);
-        toast.error("Something went wrong!");
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchData();
-  }, [propertyId]);
-
-    const fetchData = async () => {
-      try {
-        
-        const propRes = await api("/api/landlord/properties/${propertyId}", {
-          method: "GET",
-          credentials: "include",
-        });
-        const propData = await propRes.json();
-        setProperty(propData?.data || propData?.property || propData);
-
-        
-        const catRes = await fetch("http://localhost:5000/api/categories", {
+        const catRes: any = await api("/api/categories", {
           method: "GET",
         });
-        const catData = await catRes.json();
-        setCategories(Array.isArray(catData) ? catData : catData?.data || []);
+
+        if (catRes.ok || catRes.success) {
+          const catData = catRes.data || catRes;
+          setCategories(Array.isArray(catData) ? catData : catData?.data || []);
+        }
       } catch (err) {
         console.error("Failed to load data", err);
         toast.error("Failed to load property details");
@@ -73,7 +56,7 @@ export default function UpdatePropertyForm() {
 
   const handleSubmit = async (formData: FormData) => {
     startTransition(async () => {
-      const result = await updateActionWithId(null, formData);
+      const result: any = await updateActionWithId(null, formData);
       if (result && !result.success) {
         toast.error(result.message);
       } else {
@@ -113,7 +96,6 @@ export default function UpdatePropertyForm() {
           />
         </div>
 
-       
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="block text-xs font-semibold text-gray-700">Category</label>
@@ -140,13 +122,11 @@ export default function UpdatePropertyForm() {
               defaultValue={property?.price || ""}
               required
               min="0"
-              placeholder=" "
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
         </div>
 
-        
         <div className="space-y-1">
           <label className="block text-xs font-semibold text-gray-700">Location / Address</label>
           <input
@@ -159,7 +139,6 @@ export default function UpdatePropertyForm() {
           />
         </div>
 
-        
         <div className="space-y-1">
           <label className="block text-xs font-semibold text-gray-700">Image URL</label>
           <input
@@ -172,7 +151,6 @@ export default function UpdatePropertyForm() {
           />
         </div>
 
-        
         <div className="space-y-1">
           <label className="block text-xs font-semibold text-gray-700">Description</label>
           <textarea
@@ -185,7 +163,6 @@ export default function UpdatePropertyForm() {
           />
         </div>
 
-        
         <div className="flex justify-end gap-3 pt-4">
           <button
             type="submit"
