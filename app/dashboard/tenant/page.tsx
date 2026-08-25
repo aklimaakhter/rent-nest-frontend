@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { cookies } from "next/headers";
 import { BASE_URL } from "@/lib/api";
-import TenantRequestsClient from "./TenantRequestsClient";
+import TenantRequestsClient from "./tenantRequestsClient";
+
 
 
 export default async function TenantDashboardPage() {
