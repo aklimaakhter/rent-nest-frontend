@@ -18,22 +18,19 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
   let currentUser: any = null;
   let reviews: any[] = [];
 
+  // ১. প্রপার্টি ডিটেইলস ফেচ করা
   try {
-    
     const res: any = await api(`/api/properties/${id}`, {
       method: "GET",
       cache: "no-store",
     });
     property = res?.data || res?.property || res;
+  } catch (error) {
+    console.error("Failed to fetch property details", error);
+  }
 
-    
-    const reviewsRes: any = await api(`/api/reviews/${id}`, {
-      method: "GET",
-      cache: "no-store",
-    });
-    reviews = reviewsRes?.data || reviewsRes || [];
-
-    
+  // ২. বর্তমান ইউজারের তথ্য ফেচ করা
+  try {
     if (token) {
       const userRes: any = await api(`/api/auth/me`, {
         method: "GET",
@@ -43,7 +40,18 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       currentUser = userRes?.data || userRes;
     }
   } catch (error) {
-    console.error("Failed to fetch property details, reviews or user info", error);
+    console.error("Failed to fetch user info", error);
+  }
+
+  // ৩. রিভিউ ফেচ করা (আলাদা ট্রাই-ক্যাচ যাতে পেজ ক্র্যাশ না করে)
+  try {
+    const reviewsRes: any = await api(`/api/reviews/${id}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    reviews = reviewsRes?.data || reviewsRes || [];
+  } catch (err) {
+    console.log("Reviews not found or failed to load", err);
   }
 
   if (!property) {
@@ -104,7 +112,7 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
                     </div>
                     <p className="text-xs text-gray-600">{rev.comment}</p>
                     <span className="text-[10px] text-gray-400 mt-1 block">
-                      {new Date(rev.createdAt).toLocaleDateString()}
+                      {rev?.createdAt ? new Date(rev.createdAt).toLocaleDateString() : ""}
                     </span>
                   </div>
                 ))}
