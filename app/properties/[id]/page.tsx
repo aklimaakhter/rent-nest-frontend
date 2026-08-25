@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
-"use client";
-
-import { useEffect, useState, use } from "react";
 import { api } from "@/lib/api";
+import { cookies } from "next/headers";
 import RequestRentButton from "../_component/requestRentButton";
 import Link from "next/link";
 
@@ -11,71 +9,62 @@ interface PropertyDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
-  const { id } = use(params);
+export default async function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
+  const resolvedParams = await params;
+  const id = resolvedParams?.id;
 
-  const [property, setProperty] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [reviews, setReviews] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cookieStore = await cookies();
+  const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // ১. প্রপার্টি ডিটেইলস ফেচ
-        const res: any = await api(`/api/properties/${id}`, {
-          method: "GET",
-          cache: "no-store",
-        });
-        setProperty(res?.data || res?.property || res);
-      } catch (err) {
-        console.error("Failed to fetch property:", err);
-      }
+  let property: any = null;
+  let currentUser: any = null;
+  let reviews: any[] = [];
 
-      try {
-        // ২. ইউজার ইনফো ফেচ
-        const userRes: any = await api(`/api/auth/me`, {
-          method: "GET",
-          cache: "no-store",
-        });
-        setCurrentUser(userRes?.data || userRes);
-      } catch (err) {
-        console.log("User not logged in");
-      }
-
-      try {
-        // ৩. রিভিউ ফেচ
-        const reviewsRes: any = await api(`/api/reviews/${id}`, {
-          method: "GET",
-          cache: "no-store",
-        });
-        setReviews(reviewsRes?.data || reviewsRes || []);
-      } catch (err) {
-        console.log("Failed to fetch reviews");
-      }
-
-      setLoading(false);
-    }
-
+  try {
     if (id) {
-      fetchData();
+      const res: any = await api(`/api/properties/${id}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+      property = res?.data || res?.property || res;
     }
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <p className="text-gray-500 text-sm">Loading property details...</p>
-      </div>
-    );
+  } catch (error) {
+    console.error("Error fetching property:", error);
   }
 
   if (!property) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-xl font-bold text-red-600">Property not found!</h2>
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
+        <h2 className="text-xl font-bold text-red-600">Property not found or failed to load!</h2>
+        <p className="text-xs text-gray-500">Please check if the property ID is correct or try again later.</p>
+        <Link href="/properties" className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold">
+          Back to Properties
+        </Link>
       </div>
     );
+  }
+
+  try {
+    if (token) {
+      const userRes: any = await api(`/api/auth/me`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      currentUser = userRes?.data || userRes;
+    }
+  } catch (error) {
+    console.error("Error fetching user:", error);
+  }
+
+  try {
+    const reviewsRes: any = await api(`/api/reviews/${id}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    reviews = reviewsRes?.data || reviewsRes || [];
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
   }
 
   const isLandlord = currentUser?.role === "LANDLORD";
@@ -87,7 +76,7 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
       <div className="relative h-96 w-full rounded-2xl overflow-hidden shadow-md">
         <img 
           src={property?.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"} 
-          alt={property?.title}
+          alt={property?.title || "Property"}
           className="w-full h-full object-cover"
         />
       </div>
@@ -116,8 +105,8 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
               <p className="text-xs text-gray-500">No reviews yet for this property.</p>
             ) : (
               <div className="space-y-4">
-                {reviews.map((rev: any) => (
-                  <div key={rev.id || rev._id} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
+                {reviews.map((rev: any, index: number) => (
+                  <div key={rev.id || rev._id || index} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-semibold text-sm text-gray-800">
                         {rev?.tenant?.name || "Tenant"}
