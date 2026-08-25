@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
+"use client";
+
+import { useEffect, useState, use } from "react";
 import { api } from "@/lib/api";
-import { cookies } from "next/headers";
 import RequestRentButton from "../_component/requestRentButton";
 import Link from "next/link";
 
@@ -9,49 +11,63 @@ interface PropertyDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
-  const { id } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
+export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
+  const { id } = use(params);
 
-  let property: any = null;
-  let currentUser: any = null;
-  let reviews: any[] = [];
+  const [property, setProperty] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // ১. প্রপার্টি ডিটেইলস ফেচ করা
-  try {
-    const res: any = await api(`/api/properties/${id}`, {
-      method: "GET",
-      cache: "no-store",
-    });
-    property = res?.data || res?.property || res;
-  } catch (error) {
-    console.error("Failed to fetch property details", error);
-  }
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // ১. প্রপার্টি ডিটেইলস ফেচ
+        const res: any = await api(`/api/properties/${id}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        setProperty(res?.data || res?.property || res);
+      } catch (err) {
+        console.error("Failed to fetch property:", err);
+      }
 
-  // ২. বর্তমান ইউজারের তথ্য ফেচ করা
-  try {
-    if (token) {
-      const userRes: any = await api(`/api/auth/me`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
-      currentUser = userRes?.data || userRes;
+      try {
+        // ২. ইউজার ইনফো ফেচ
+        const userRes: any = await api(`/api/auth/me`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        setCurrentUser(userRes?.data || userRes);
+      } catch (err) {
+        console.log("User not logged in");
+      }
+
+      try {
+        // ৩. রিভিউ ফেচ
+        const reviewsRes: any = await api(`/api/reviews/${id}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        setReviews(reviewsRes?.data || reviewsRes || []);
+      } catch (err) {
+        console.log("Failed to fetch reviews");
+      }
+
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Failed to fetch user info", error);
-  }
 
-  // ৩. রিভিউ ফেচ করা (আলাদা ট্রাই-ক্যাচ যাতে পেজ ক্র্যাশ না করে)
-  try {
-    const reviewsRes: any = await api(`/api/reviews/${id}`, {
-      method: "GET",
-      cache: "no-store",
-    });
-    reviews = reviewsRes?.data || reviewsRes || [];
-  } catch (err) {
-    console.log("Reviews not found or failed to load", err);
+    if (id) {
+      fetchData();
+    }
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <p className="text-gray-500 text-sm">Loading property details...</p>
+      </div>
+    );
   }
 
   if (!property) {
