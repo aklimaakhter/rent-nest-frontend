@@ -19,21 +19,21 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
   let reviews: any[] = [];
 
   try {
-    // প্রপার্টি ডিটেইলস ফেচ করা
+    
     const res: any = await api(`/api/properties/${id}`, {
       method: "GET",
       cache: "no-store",
     });
     property = res?.data || res?.property || res;
 
-    // প্রপার্টির রিভিউগুলো ফেচ করা
-    const reviewsRes: any = await api(`/api/reviews/property/${id}`, {
+    
+    const reviewsRes: any = await api(`/api/reviews/${id}`, {
       method: "GET",
       cache: "no-store",
     });
     reviews = reviewsRes?.data || reviewsRes || [];
 
-    // বর্তমান ইউজারের তথ্য ফেচ করা
+    
     if (token) {
       const userRes: any = await api(`/api/auth/me`, {
         method: "GET",
