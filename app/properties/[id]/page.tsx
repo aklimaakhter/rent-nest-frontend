@@ -47,10 +47,13 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
           cache: "no-store",
         });
         
-        // এখানে সেফ চেক করা হলো যাতে ডাটা অ্যারে না হলেও ক্র্যাশ না করে
-        const reviewData = reviewsRes?.data || reviewsRes;
-        if (Array.isArray(reviewData)) {
-          setReviews(reviewData);
+        // পোস্টম্যানের রেসপন্স অনুযায়ী ডেটা অ্যারে ধরার সঠিক পদ্ধতি
+        if (reviewsRes?.success && Array.isArray(reviewsRes?.data)) {
+          setReviews(reviewsRes.data);
+        } else if (Array.isArray(reviewsRes)) {
+          setReviews(reviewsRes);
+        } else if (Array.isArray(reviewsRes?.data)) {
+          setReviews(reviewsRes.data);
         } else {
           setReviews([]);
         }
