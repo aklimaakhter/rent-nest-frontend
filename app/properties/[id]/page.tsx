@@ -16,16 +16,24 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
 
   let property: any = null;
   let currentUser: any = null;
+  let reviews: any[] = [];
 
   try {
-    
+    // প্রপার্টি ডিটেইলস ফেচ করা
     const res: any = await api(`/api/properties/${id}`, {
       method: "GET",
       cache: "no-store",
     });
     property = res?.data || res?.property || res;
 
-    
+    // প্রপার্টির রিভিউগুলো ফেচ করা
+    const reviewsRes: any = await api(`/api/reviews/property/${id}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    reviews = reviewsRes?.data || reviewsRes || [];
+
+    // বর্তমান ইউজারের তথ্য ফেচ করা
     if (token) {
       const userRes: any = await api(`/api/auth/me`, {
         method: "GET",
@@ -35,7 +43,7 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       currentUser = userRes?.data || userRes;
     }
   } catch (error) {
-    console.error("Failed to fetch property details or user info", error);
+    console.error("Failed to fetch property details, reviews or user info", error);
   }
 
   if (!property) {
@@ -46,7 +54,6 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
     );
   }
 
-  
   const isLandlord = currentUser?.role === "LANDLORD";
   const isOwner = property?.landlordId === currentUser?.id || property?.landlord === currentUser?.id;
 
@@ -63,16 +70,46 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
 
       {/* Property Info */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-4">
-          <h1 className="text-3xl font-bold text-gray-900">{property?.title}</h1>
-          <p className="text-gray-600 text-sm">{property?.location}</p>
-          <div className="text-xl font-semibold text-emerald-600">
-            ৳ {property?.price} <span className="text-xs text-gray-500">/ month</span>
+        <div className="md:col-span-2 space-y-6">
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold text-gray-900">{property?.title}</h1>
+            <p className="text-gray-600 text-sm">{property?.location}</p>
+            <div className="text-xl font-semibold text-emerald-600">
+              ৳ {property?.price} <span className="text-xs text-gray-500">/ month</span>
+            </div>
+            <hr className="border-gray-100" />
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Description</h3>
+              <p className="text-gray-700 text-sm leading-relaxed">{property?.description}</p>
+            </div>
           </div>
-          <hr className="border-gray-100" />
-          <div>
-            <h3 className="text-lg font-semibold mb-2">Description</h3>
-            <p className="text-gray-700 text-sm leading-relaxed">{property?.description}</p>
+
+          {/* Reviews Section */}
+          <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-4">
+            <h3 className="text-lg font-bold text-gray-800">Reviews ({reviews.length})</h3>
+            
+            {reviews.length === 0 ? (
+              <p className="text-xs text-gray-500">No reviews yet for this property.</p>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((rev: any) => (
+                  <div key={rev.id || rev._id} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="font-semibold text-sm text-gray-800">
+                        {rev?.tenant?.name || "Tenant"}
+                      </span>
+                      <span className="text-amber-500 text-sm font-bold">
+                        ⭐ {rev.rating} / 5
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-600">{rev.comment}</p>
+                    <span className="text-[10px] text-gray-400 mt-1 block">
+                      {new Date(rev.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

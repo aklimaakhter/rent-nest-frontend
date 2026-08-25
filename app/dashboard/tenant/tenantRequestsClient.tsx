@@ -6,6 +6,8 @@ import ReviewModal from "./requests/reviewModal";
 
 export default function TenantRequestsClient({ requests }: { requests: any[] }) {
     const [reviewTarget, setReviewTarget] = useState<{ propertyId: string; title: string } | null>(null);
+    
+    const [reviewedIds, setReviewedIds] = useState<string[]>([]);
 
     return (
         <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden p-6">
@@ -15,6 +17,8 @@ export default function TenantRequestsClient({ requests }: { requests: any[] }) 
                 <div className="space-y-4">
                     {requests.map((req: any) => {
                         const propertyId = req?.property?.id || req?.propertyId;
+                        const isAlreadyReviewed = reviewedIds.includes(propertyId);
+
                         return (
                             <div key={req.id || req._id} className="flex items-center justify-between border-b border-gray-100 pb-4">
                                 <div>
@@ -28,7 +32,7 @@ export default function TenantRequestsClient({ requests }: { requests: any[] }) 
                                                 req.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
                                                     req.status === 'COMPLETED' ? 'bg-gray-200 text-gray-700' :
                                                         'bg-green-100 text-green-700'
-                                        }`}>
+                                    }`}>
                                         {req.status}
                                     </span>
 
@@ -41,9 +45,7 @@ export default function TenantRequestsClient({ requests }: { requests: any[] }) 
                                         </a>
                                     )}
 
-
-
-                                    {(req.status === 'ACTIVE' || req.status === 'COMPLETED') && propertyId && (
+                                    {(req.status === 'ACTIVE' || req.status === 'COMPLETED') && propertyId && !isAlreadyReviewed && (
                                         <button
                                             onClick={() =>
                                                 setReviewTarget({
@@ -66,7 +68,13 @@ export default function TenantRequestsClient({ requests }: { requests: any[] }) 
             {reviewTarget && (
                 <ReviewModal
                     propertyId={reviewTarget.propertyId}
-                    onClose={() => setReviewTarget(null)}
+                    onClose={() => {
+                       
+                        if (reviewTarget) {
+                            setReviewedIds((prev) => [...prev, reviewTarget.propertyId]);
+                        }
+                        setReviewTarget(null);
+                    }}
                 />
             )}
         </div>
