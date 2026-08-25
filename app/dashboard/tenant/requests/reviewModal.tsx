@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { createReviewAction } from "./_actions/reviewAction";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function ReviewModal({ propertyId, onClose }: { propertyId: string; onClose: () => void }) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,9 +17,11 @@ export default function ReviewModal({ propertyId, onClose }: { propertyId: strin
 
     const res = await createReviewAction({ propertyId, rating, comment });
 
+    
     if (res?.ok) {
       toast.success("Review submitted successfully!");
       onClose();
+      router.refresh(); 
     } else {
       toast.error(res?.message || "Failed to submit review");
     }
