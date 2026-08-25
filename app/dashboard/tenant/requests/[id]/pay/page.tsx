@@ -32,25 +32,24 @@ export default function TenantPaymentPage() {
     loadData();
   }, [requestId]);
 
-  const handlePayment = async () => {
-    startTransition(async () => {
-      try {
-        const res: any = await createPaymentAction(requestId);
+ const handlePayment = async () => {
+  startTransition(async () => {
+    try {
+      const res: any = await createPaymentAction(requestId);
 
-        const paymentUrl = res?.data?.url || res?.url;
+      const paymentUrl = res?.data?.checkoutUrl || res?.checkoutUrl;
 
-        if (res?.success !== false && paymentUrl) {
-          window.location.href = paymentUrl;
-        } else {
-          toast.error(res?.message || "Failed to initiate payment");
-        }
-      } catch (err) {
-        console.error(err);
-        toast.error("Something went wrong during payment!");
+      if (res?.ok !== false && paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
+        toast.error(res?.message || "Failed to initiate payment");
       }
-    });
-  };
-
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong during payment!");
+    }
+  });
+};
   if (loading) {
     return <div className="text-center py-12 text-gray-500 text-xs">Loading payment details...</div>;
   }
