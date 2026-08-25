@@ -1,15 +1,6 @@
+import { Property } from "@/lib/types";
 import Link from "next/link";
 
-interface Property {
-  id: string;
-  title: string;
-  location: string;
-  price: number;
-  image: string;
-  category: {
-    name: string;
-  };
-}
 
 async function getFeaturedProperties(): Promise<Property[]> {
   try {

@@ -38,3 +38,14 @@ export type ApiResponse={
   users?: User[];
   message?: string;
 }
+
+export type Property= {
+  id: string;
+  title: string;
+  location: string;
+  price: number;
+  image: string;
+  category: {
+    name: string;
+  };
+}
