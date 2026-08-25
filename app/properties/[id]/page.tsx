@@ -19,8 +19,10 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
   const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // useEffect অংশটুকু এভাবে আপডেট করুন যাতে আইডি পরিবর্তন হলে বা রিফ্রেশ হলে ডাটা সাথে সাথে লোড হয়
   useEffect(() => {
     async function loadData() {
+      setLoading(true);
       try {
         const res: any = await api(`/api/properties/${id}`, {
           method: "GET",
@@ -42,12 +44,12 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
       }
 
       try {
+        // ক্যাশ এড়ানোর জন্য ইউনিক টাইমস্ট্যাম্প যুক্ত করা যেতে পারে অথবা নো-স্টোর
         const reviewsRes: any = await api(`/api/reviews/${id}`, {
           method: "GET",
           cache: "no-store",
         });
         
-        // পোস্টম্যানের রেসপন্স অনুযায়ী ডেটা অ্যারে ধরার সঠিক পদ্ধতি
         if (reviewsRes?.success && Array.isArray(reviewsRes?.data)) {
           setReviews(reviewsRes.data);
         } else if (Array.isArray(reviewsRes)) {
