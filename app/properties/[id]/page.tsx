@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @next/next/no-img-element */
+"use client";
+
+import { useEffect, useState, use } from "react";
 import { api } from "@/lib/api";
-import { cookies } from "next/headers";
 import RequestRentButton from "../_component/requestRentButton";
 import Link from "next/link";
 
@@ -9,68 +11,77 @@ interface PropertyDetailsPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
-  const resolvedParams = await params;
-  const id = resolvedParams?.id;
+export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
+  const { id } = use(params);
 
-  const cookieStore = await cookies();
-  const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
+  const [property, setProperty] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  let property: any = null;
-  let currentUser: any = null;
-  let reviews: any[] = [];
+  useEffect(() => {
+    async function loadData() {
+      try {
+        // ১. প্রপার্টি ফেচ করা
+        const res: any = await api(`/api/properties/${id}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        setProperty(res?.data || res?.property || res);
+      } catch (err) {
+        console.error("Property fetch error:", err);
+      }
 
-  // ১. প্রপার্টি ফেচ করার নিরাপদ চেষ্টা
-  try {
-    if (id) {
-      const res: any = await api(`/api/properties/${id}`, {
-        method: "GET",
-        cache: "no-store",
-      });
-      property = res?.data || res?.property || res;
+      try {
+        // ২. ইউজার ফেচ করা
+        const userRes: any = await api(`/api/auth/me`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        setCurrentUser(userRes?.data || userRes);
+      } catch (err) {
+        console.log("User not logged in");
+      }
+
+      try {
+        // ৩. রিভিউ ফেচ করা
+        const reviewsRes: any = await api(`/api/reviews/${id}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        setReviews(reviewsRes?.data || reviewsRes || []);
+      } catch (err) {
+        console.log("Reviews fetch error");
+      }
+
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Failed to fetch property details", error);
-  }
 
-  // প্রপার্টি না থাকলে ক্র্যাশ না করিয়ে সুন্দর একটি মেসেজ দেখাবে
-  if (!property) {
+    if (id) {
+      loadData();
+    }
+  }, [id]);
+
+  if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-red-600">Property not found or invalid ID!</h2>
-        <p className="text-xs text-gray-500">The property you are looking for might have been removed or does not exist.</p>
-        <div>
-          <Link href="/properties" className="inline-block px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 transition">
-            Browse All Properties
-          </Link>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <p className="text-gray-500 text-sm">Loading property details...</p>
       </div>
     );
   }
 
-  // ২. ইউজার ইনফো ফেচ
-  try {
-    if (token) {
-      const userRes: any = await api(`/api/auth/me`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-        cache: "no-store",
-      });
-      currentUser = userRes?.data || userRes;
-    }
-  } catch (error) {
-    console.log("User info not loaded");
-  }
-
-  // ৩. রিভিউ ফেচ
-  try {
-    const reviewsRes: any = await api(`/api/reviews/${id}`, {
-      method: "GET",
-      cache: "no-store",
-    });
-    reviews = reviewsRes?.data || reviewsRes || [];
-  } catch (error) {
-    console.log("Reviews not available");
+  if (!property) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
+        <h2 className="text-xl font-bold text-red-600">Property not found!</h2>
+        <p className="text-xs text-gray-500">The property ID might be incorrect or the property was deleted.</p>
+        <div>
+          <Link href="/properties" className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold">
+            Back to Properties
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const isLandlord = currentUser?.role === "LANDLORD";
@@ -82,7 +93,7 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       <div className="relative h-96 w-full rounded-2xl overflow-hidden shadow-md">
         <img 
           src={property?.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"} 
-          alt={property?.title || "Property Image"}
+          alt={property?.title || "Property"}
           className="w-full h-full object-cover"
         />
       </div>
