@@ -31,3 +31,29 @@ export async function createPaymentAction(rentalRequestId: string) {
     return { success: false, message: "Something went wrong!" };
   }
 }
+
+export async function confirmPaymentAction(sessionId: string) {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value || cookieStore.get("accessToken")?.value;
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res: any = await api(`/api/payments/confirm`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ sessionId }),
+    });
+
+    return res;
+  } catch (error) {
+    console.error("Payment confirmation error:", error);
+    return { success: false, message: "Something went wrong!" };
+  }
+}
