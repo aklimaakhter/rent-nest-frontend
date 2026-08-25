@@ -22,7 +22,6 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
   useEffect(() => {
     async function loadData() {
       try {
-        // ১. প্রপার্টি ফেচ করা
         const res: any = await api(`/api/properties/${id}`, {
           method: "GET",
           cache: "no-store",
@@ -33,7 +32,6 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
       }
 
       try {
-        // ২. ইউজার ফেচ করা
         const userRes: any = await api(`/api/auth/me`, {
           method: "GET",
           cache: "no-store",
@@ -44,14 +42,21 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
       }
 
       try {
-        // ৩. রিভিউ ফেচ করা
         const reviewsRes: any = await api(`/api/reviews/${id}`, {
           method: "GET",
           cache: "no-store",
         });
-        setReviews(reviewsRes?.data || reviewsRes || []);
+        
+        // এখানে সেফ চেক করা হলো যাতে ডাটা অ্যারে না হলেও ক্র্যাশ না করে
+        const reviewData = reviewsRes?.data || reviewsRes;
+        if (Array.isArray(reviewData)) {
+          setReviews(reviewData);
+        } else {
+          setReviews([]);
+        }
       } catch (err) {
         console.log("Reviews fetch error");
+        setReviews([]);
       }
 
       setLoading(false);
@@ -116,23 +121,23 @@ export default function PropertyDetailsPage({ params }: PropertyDetailsPageProps
 
           {/* Reviews Section */}
           <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-4">
-            <h3 className="text-lg font-bold text-gray-800">Reviews ({reviews.length})</h3>
+            <h3 className="text-lg font-bold text-gray-800">Reviews ({Array.isArray(reviews) ? reviews.length : 0})</h3>
             
-            {reviews.length === 0 ? (
+            {!Array.isArray(reviews) || reviews.length === 0 ? (
               <p className="text-xs text-gray-500">No reviews yet for this property.</p>
             ) : (
               <div className="space-y-4">
                 {reviews.map((rev: any, index: number) => (
-                  <div key={rev.id || rev._id || index} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
+                  <div key={rev?.id || rev?._id || index} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-semibold text-sm text-gray-800">
                         {rev?.tenant?.name || "Tenant"}
                       </span>
                       <span className="text-amber-500 text-sm font-bold">
-                        ⭐ {rev.rating} / 5
+                        ⭐ {rev?.rating || 0} / 5
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600">{rev.comment}</p>
+                    <p className="text-xs text-gray-600">{rev?.comment}</p>
                     <span className="text-[10px] text-gray-400 mt-1 block">
                       {rev?.createdAt ? new Date(rev.createdAt).toLocaleDateString() : ""}
                     </span>
