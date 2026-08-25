@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
 import { api } from "@/lib/api";
 import { cookies } from "next/headers";
 import RequestRentButton from "../_component/requestRentButton";
@@ -10,9 +10,7 @@ interface PropertyDetailsPageProps {
 }
 
 export default async function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
-  const resolvedParams = await params;
-  const id = resolvedParams?.id;
-
+  const { id } = await params;
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
 
@@ -21,30 +19,14 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
   let reviews: any[] = [];
 
   try {
-    if (id) {
-      const res: any = await api(`/api/properties/${id}`, {
-        method: "GET",
-        cache: "no-store",
-      });
-      property = res?.data || res?.property || res;
-    }
-  } catch (error) {
-    console.error("Error fetching property:", error);
-  }
+    // প্রপার্টি ডিটেইলস ফেচ করা (যা আগে থেকেই পারফেক্ট কাজ করছিল)
+    const res: any = await api(`/api/properties/${id}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+    property = res?.data || res?.property || res;
 
-  if (!property) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
-        <h2 className="text-xl font-bold text-red-600">Property not found or failed to load!</h2>
-        <p className="text-xs text-gray-500">Please check if the property ID is correct or try again later.</p>
-        <Link href="/properties" className="inline-block px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold">
-          Back to Properties
-        </Link>
-      </div>
-    );
-  }
-
-  try {
+    // বর্তমান ইউজারের তথ্য ফেচ করা
     if (token) {
       const userRes: any = await api(`/api/auth/me`, {
         method: "GET",
@@ -54,9 +36,10 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       currentUser = userRes?.data || userRes;
     }
   } catch (error) {
-    console.error("Error fetching user:", error);
+    console.error("Failed to fetch property details or user info", error);
   }
 
+  // রিভিউ ফেচ করার জন্য আলাদা try-catch, যাতে রিভিউ ফেইল করলেও প্রপার্টি পেজ ক্র্যাশ না করে
   try {
     const reviewsRes: any = await api(`/api/reviews/${id}`, {
       method: "GET",
@@ -64,7 +47,15 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
     });
     reviews = reviewsRes?.data || reviewsRes || [];
   } catch (error) {
-    console.error("Error fetching reviews:", error);
+    console.log("Reviews could not be loaded", error);
+  }
+
+  if (!property) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <h2 className="text-xl font-bold text-red-600">Property not found!</h2>
+      </div>
+    );
   }
 
   const isLandlord = currentUser?.role === "LANDLORD";
@@ -76,7 +67,7 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       <div className="relative h-96 w-full rounded-2xl overflow-hidden shadow-md">
         <img 
           src={property?.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"} 
-          alt={property?.title || "Property"}
+          alt={property?.title}
           className="w-full h-full object-cover"
         />
       </div>
@@ -105,8 +96,8 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
               <p className="text-xs text-gray-500">No reviews yet for this property.</p>
             ) : (
               <div className="space-y-4">
-                {reviews.map((rev: any, index: number) => (
-                  <div key={rev.id || rev._id || index} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
+                {reviews.map((rev: any) => (
+                  <div key={rev.id || rev._id} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-semibold text-sm text-gray-800">
                         {rev?.tenant?.name || "Tenant"}
