@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
+/* eslint-disable @next/next/no-img-element */
 import { api } from "@/lib/api";
 import { cookies } from "next/headers";
 import RequestRentButton from "../_component/requestRentButton";
@@ -10,7 +10,9 @@ interface PropertyDetailsPageProps {
 }
 
 export default async function PropertyDetailsPage({ params }: PropertyDetailsPageProps) {
-  const { id } = await params;
+  const resolvedParams = await params;
+  const id = resolvedParams?.id;
+
   const cookieStore = await cookies();
   const token = cookieStore.get("accessToken")?.value || cookieStore.get("token")?.value;
 
@@ -18,15 +20,36 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
   let currentUser: any = null;
   let reviews: any[] = [];
 
+  // ১. প্রপার্টি ফেচ করার নিরাপদ চেষ্টা
   try {
-    // প্রপার্টি ডিটেইলস ফেচ করা (যা আগে থেকেই পারফেক্ট কাজ করছিল)
-    const res: any = await api(`/api/properties/${id}`, {
-      method: "GET",
-      cache: "no-store",
-    });
-    property = res?.data || res?.property || res;
+    if (id) {
+      const res: any = await api(`/api/properties/${id}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+      property = res?.data || res?.property || res;
+    }
+  } catch (error) {
+    console.error("Failed to fetch property details", error);
+  }
 
-    // বর্তমান ইউজারের তথ্য ফেচ করা
+  // প্রপার্টি না থাকলে ক্র্যাশ না করিয়ে সুন্দর একটি মেসেজ দেখাবে
+  if (!property) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-4">
+        <h2 className="text-xl font-bold text-red-600">Property not found or invalid ID!</h2>
+        <p className="text-xs text-gray-500">The property you are looking for might have been removed or does not exist.</p>
+        <div>
+          <Link href="/properties" className="inline-block px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 transition">
+            Browse All Properties
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ২. ইউজার ইনফো ফেচ
+  try {
     if (token) {
       const userRes: any = await api(`/api/auth/me`, {
         method: "GET",
@@ -36,10 +59,10 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       currentUser = userRes?.data || userRes;
     }
   } catch (error) {
-    console.error("Failed to fetch property details or user info", error);
+    console.log("User info not loaded");
   }
 
-  // রিভিউ ফেচ করার জন্য আলাদা try-catch, যাতে রিভিউ ফেইল করলেও প্রপার্টি পেজ ক্র্যাশ না করে
+  // ৩. রিভিউ ফেচ
   try {
     const reviewsRes: any = await api(`/api/reviews/${id}`, {
       method: "GET",
@@ -47,15 +70,7 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
     });
     reviews = reviewsRes?.data || reviewsRes || [];
   } catch (error) {
-    console.log("Reviews could not be loaded", error);
-  }
-
-  if (!property) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <h2 className="text-xl font-bold text-red-600">Property not found!</h2>
-      </div>
-    );
+    console.log("Reviews not available");
   }
 
   const isLandlord = currentUser?.role === "LANDLORD";
@@ -67,7 +82,7 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
       <div className="relative h-96 w-full rounded-2xl overflow-hidden shadow-md">
         <img 
           src={property?.image || "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"} 
-          alt={property?.title}
+          alt={property?.title || "Property Image"}
           className="w-full h-full object-cover"
         />
       </div>
@@ -96,8 +111,8 @@ export default async function PropertyDetailsPage({ params }: PropertyDetailsPag
               <p className="text-xs text-gray-500">No reviews yet for this property.</p>
             ) : (
               <div className="space-y-4">
-                {reviews.map((rev: any) => (
-                  <div key={rev.id || rev._id} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
+                {reviews.map((rev: any, index: number) => (
+                  <div key={rev.id || rev._id || index} className="border-b border-gray-100 pb-4 last:border-none last:pb-0">
                     <div className="flex justify-between items-center mb-1">
                       <span className="font-semibold text-sm text-gray-800">
                         {rev?.tenant?.name || "Tenant"}
